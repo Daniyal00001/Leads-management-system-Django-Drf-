@@ -77,7 +77,7 @@ DATABASES = {
     }
 }
 
-# Custom user model (we'll build this in accounts app next chunk)
+# Custom user model (bydefault=> auth_user_model)
 AUTH_USER_MODEL = "accounts.User"
 
 AUTH_PASSWORD_VALIDATORS = [
