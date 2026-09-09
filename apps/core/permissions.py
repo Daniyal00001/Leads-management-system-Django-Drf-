@@ -1,9 +1,7 @@
 from rest_framework.permissions import BasePermission
 
-
+# Base.....this class will be inherited by others
 class HasAnyRole(BasePermission):
-
-    # Base.....this class will be inherited by others
 
     allowed_roles = []
 
