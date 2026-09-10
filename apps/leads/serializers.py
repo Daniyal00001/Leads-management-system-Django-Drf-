@@ -93,3 +93,31 @@ class PhaseEngineerAssignSerializer(serializers.Serializer):
         if not user.groups.filter(name=Roles.ENGINEER).exists():
             raise serializers.ValidationError("User is not an Engineer.")
         return value
+
+
+
+       # ==========================================================
+       # ==========================================================
+       # =========================================================
+
+class LeadCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields = [
+            "id", "project_name", "client_name", "client_address",
+            "client_email", "client_contact", "platform_used",
+            "test_type", "comments_note",
+        ]
+        read_only_fields = ["id"]
+
+
+class PhaseCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Phase
+        fields = ["id", "type", "start_date", "due_date"]  
+        read_only_fields = ["id"]
+
+    def validate(self, attrs):
+        if attrs["due_date"] < attrs["start_date"]:
+            raise serializers.ValidationError("due_date cannot be before start_date.")
+        return attrs

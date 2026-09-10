@@ -1,0 +1,29 @@
+* { box-sizing: border-box; }
+body { font-family: -apple-system, sans-serif; margin: 0; background: #f5f6f8; color: #1a1a1a; }
+.navbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: #1f2937; color: white; }
+.navbar a { color: white; text-decoration: none; }
+.brand { font-weight: 600; }
+.inline-form { display: inline; }
+.container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+.data-table { width: 100%; border-collapse: collapse; background: white; }
+.data-table th, .data-table td { padding: 0.6rem 1rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
+.badge { padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; background: #e5e7eb; }
+.badge-open, .badge-pending_acceptance { background: #fef3c7; }
+.badge-sale, .badge-accepted, .badge-completed { background: #d1fae5; }
+.badge-no_sale, .badge-declined { background: #fee2e2; }
+.auth-card { max-width: 360px; margin: 4rem auto; background: white; padding: 2rem; border-radius: 8px; }
+.form-group { margin-bottom: 1rem; }
+.form-group input { width: 100%; padding: 0.5rem; }
+.pagination { margin-top: 1rem; display: flex; gap: 1rem; }
+.alert { padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px; }
+.alert-success { background: #d1fae5; }
+.alert-error { background: #fee2e2; }
+.comment { background: white; padding: 1rem; margin-bottom: 0.75rem; border-radius: 6px; border: 1px solid #e5e7eb; }
+.comment-img { max-width: 150px; margin-top: 0.5rem; margin-right: 0.5rem; border-radius: 4px; }
+#comment-form { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; max-width: 500px; }
+#comment-form textarea { padding: 0.5rem; min-height: 80px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; }
+.btn-primary { background: #1f2937; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; }
+.stacked-form { display: flex; flex-direction: column; gap: 0.75rem; max-width: 500px; }
+.stacked-form input, .stacked-form select, .stacked-form textarea { padding: 0.5rem; }
+.add-phase-details { margin-top: 1.5rem; }

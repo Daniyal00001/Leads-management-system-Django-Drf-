@@ -50,12 +50,12 @@ class CommentCreateSerializer(serializers.Serializer): # not a model serializer
 
     def validate(self, attrs):
         app_label, model = self.MODEL_MAP[attrs["model_name"]]
-        try:
+        try:                                                         #check app and model exists
             content_type = ContentType.objects.get(app_label=app_label, model=model)
         except ContentType.DoesNotExist:
             raise serializers.ValidationError("Invalid target model.")
 
-        target_model = content_type.model_class()
+        target_model = content_type.model_class()                      #check object 
         if not target_model.objects.filter(pk=attrs["object_id"]).exists():
             raise serializers.ValidationError(f"{attrs['model_name']} with this id does not exist.")
 

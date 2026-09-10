@@ -146,3 +146,27 @@ def mark_lead_as_no_sale(lead, decided_by):
         lead.save(update_fields=["status", "sale_decided_at", "sale_decided_by", "updated_at"])
 
     return lead
+
+
+   # ========================================
+   # =========================================
+
+def create_lead(validated_data, created_by):
+    with transaction.atomic():
+        lead = Lead.objects.create(created_by=created_by, **validated_data)    #** → dictionary unpack
+    return lead
+
+
+def create_phase(lead, validated_data, created_by):
+    if lead.status != LeadStatus.OPEN:
+        raise ValidationError("Cannot add phases to a lead that has already been decided.")
+
+    with transaction.atomic():
+        last_order = lead.phases.aggregate(models.Max("order"))["order__max"] or 0
+        phase = Phase.objects.create(
+            lead=lead,
+            created_by=created_by,
+            order=last_order + 1,
+            **validated_data,
+        )
+    return phase

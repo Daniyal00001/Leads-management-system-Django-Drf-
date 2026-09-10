@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}New Lead{% endblock %}
+
+{% block content %}
+<h1>New Lead</h1>
+
+<form id="lead-form" class="stacked-form">
+    <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" id="project_name" required>
+    </div>
+    <div class="form-group">
+        <label>Client Name</label>
+        <input type="text" id="client_name" required>
+    </div>
+    <div class="form-group">
+        <label>Client Address</label>
+        <textarea id="client_address"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Client Email</label>
+        <input type="email" id="client_email" required>
+    </div>
+    <div class="form-group">
+        <label>Client Contact</label>
+        <input type="text" id="client_contact" required>
+    </div>
+    <div class="form-group">
+        <label>Platform Used</label>
+        <input type="text" id="platform_used" required>
+    </div>
+    <div class="form-group">
+        <label>Test Type</label>
+        <select id="test_type" required>
+            <option value="test_project">Test Project</option>
+            <option value="interview">Interview</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Notes</label>
+        <textarea id="comments_note"></textarea>
+    </div>
+    <div id="form-errors" class="alert alert-error" style="display:none;"></div>
+    <button type="submit">Create Lead</button>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('lead-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const payload = {
+        project_name: document.getElementById('project_name').value,
+        client_name: document.getElementById('client_name').value,
+        client_address: document.getElementById('client_address').value,
+        client_email: document.getElementById('client_email').value,
+        client_contact: document.getElementById('client_contact').value,
+        platform_used: document.getElementById('platform_used').value,
+        test_type: document.getElementById('test_type').value,
+        comments_note: document.getElementById('comments_note').value,
+    };
+
+    apiPost('/api/leads/create/', payload)
+        .then(data => {
+            window.location.href = `/leads/${data.id}/`;
+        })
+        .catch(err => {
+            const box = document.getElementById('form-errors');
+            box.style.display = 'block';
+            box.textContent = JSON.stringify(err.data);
+        });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load role_tags %}
+{% block title %}Leads{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Leads</h1>
+
+    {% if user|has_role:"Business Developer" %}
+        <a href="{% url 'leads:lead-page-create' %}" class="btn-primary">
+            + New Lead
+        </a>
+    {% endif %}
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Project</th>
+            <th>Client</th>
+            <th>Status</th>
+            <th>Phases</th>
+            <th>Created By</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for lead in page_obj %}
+        <tr>
+            <td>
+                <a href="{% url 'leads:lead-page-detail' lead.pk %}">
+                    {{ lead.project_name }}
+                </a>
+            </td>
+            <td>{{ lead.client_name }}</td>
+            <td>
+                <span class="badge badge-{{ lead.status }}">
+                    {{ lead.get_status_display }}
+                </span>
+            </td>
+            <td>{{ lead.phases.count }}</td>
+            <td>{{ lead.created_by.email }}</td>
+            <td>{{ lead.created_at|date:"M d, Y" }}</td>
+        </tr>
+
+        {% empty %}
+        <tr>
+            <td colspan="6">No leads yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    <span>
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
