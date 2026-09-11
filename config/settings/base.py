@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "apps.comments",
     "apps.notifications",
     "apps.core",
+    "apps.commissions",
 ]
 
 MIDDLEWARE = [

@@ -30,6 +30,18 @@
     on {{ lead.created_at|date:"M d, Y" }}
 </p>
 
+{% if lead.status == "sale" %}
+<p>
+    <strong>Sale decided:</strong>
+    {{ lead.sale_decided_at|date:"M d, Y" }} by {{ lead.sale_decided_by.email }}
+</p>
+    {% if lead.project %}
+    <p>
+        <a href="{% url 'projects:project-page-detail' lead.project.id %}">View Project →</a>
+    </p>
+    {% endif %}
+{% endif %}
+
 <h2>Phases</h2>
 
 {% if lead.status == "open" %}
@@ -179,6 +191,25 @@
     </tbody>
 
 </table>
+
+
+{% if lead.status == "open" and lead.all_phases_completed %}
+<div class="decision-box">
+    <h2>Ready to Decide</h2>
+    <p>All phases are completed. Mark this lead as a sale or no-sale.</p>
+
+    <form id="mark-sale-form" class="stacked-form">
+        <div class="form-group">
+            <label>Sale Amount (Rs.)</label>
+            <input type="number" id="sale_amount" step="0.01" min="0.01" required>
+        </div>
+        <div id="sale-form-errors" class="alert alert-error" style="display:none;"></div>
+        <button type="submit">Mark as Sale</button>
+    </form>
+
+    <button onclick="markNoSale()" class="btn-secondary">Mark as No Sale</button>
+</div>
+{% endif %}
 
 
 <h2>Comments</h2>
@@ -339,6 +370,82 @@ if (phaseForm) {
         }
     );
 
+}
+
+
+/*
+ * Mark Sale / No Sale
+ */
+
+const markSaleForm =
+    document.getElementById('mark-sale-form');
+
+if (markSaleForm) {
+
+    markSaleForm.addEventListener(
+        'submit',
+        function (e) {
+
+            e.preventDefault();
+
+            const sale_amount =
+                document.getElementById(
+                    'sale_amount'
+                ).value;
+
+            apiPost(
+                `/api/leads/${LEAD_ID}/mark-sale/`,
+                { sale_amount }
+            )
+
+                .then(data => {
+
+                    window.location.href =
+                        `/projects/${data.project_id}/`;
+
+                })
+
+                .catch(err => {
+
+                    const box =
+                        document.getElementById(
+                            'sale-form-errors'
+                        );
+
+                    box.style.display = 'block';
+
+                    box.textContent =
+                        JSON.stringify(err.data);
+
+                });
+
+        }
+    );
+
+}
+
+
+function markNoSale() {
+
+    if (!confirm(
+        "Mark this lead as No Sale? This cannot be undone."
+    )) {
+        return;
+    }
+
+    apiPost(
+        `/api/leads/${LEAD_ID}/mark-no-sale/`,
+        {}
+    )
+
+        .then(() => location.reload())
+
+        .catch(err =>
+            alert(
+                err.data.detail ||
+                "Failed to mark as no sale."
+            )
+        );
 }
 
 

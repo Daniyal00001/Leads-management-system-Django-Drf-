@@ -20,6 +20,8 @@ class Project(TimeStampedModel):
     )
     title = models.CharField(max_length=255)
 
+    sale_amount = models.DecimalField(max_digits=12, decimal_places=2) 
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,

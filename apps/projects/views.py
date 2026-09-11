@@ -10,6 +10,8 @@ from .models import Project
 from .permissions import IsBDOrSuperAdmin
 from .serializers import ProjectDetailSerializer, ProjectManagerAssignSerializer
 from . import services
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 
 
 class ProjectListAPIView(generics.ListAPIView):
@@ -45,3 +47,19 @@ class ProjectAssignManagerAPIView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(ProjectDetailSerializer(project).data)
+
+
+
+        # =========================================
+
+
+
+
+@login_required
+def project_detail_page(request, pk):
+    project = get_object_or_404(
+        Project.objects.select_related("lead", "created_by")
+        .prefetch_related("project_managers__manager", "commission_records__user"),
+        pk=pk,
+    )
+    return render(request, "projects/project_detail.html", {"project": project})

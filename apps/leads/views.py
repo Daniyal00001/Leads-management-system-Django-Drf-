@@ -30,6 +30,7 @@ from .serializers import (
     PhaseEngineerAssignSerializer,
     LeadCreateSerializer,
     PhaseCreateSerializer,
+    LeadMarkSaleSerializer,
 )
 
 
@@ -67,24 +68,21 @@ class LeadMarkSaleAPIView(APIView):
 
     def post(self, request, pk):
         lead = get_object_or_404(Lead, pk=pk)
+        serializer = LeadMarkSaleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
         try:
             project = services.mark_lead_as_sale(
                 lead,
                 decided_by=request.user,
+                sale_amount=serializer.validated_data["sale_amount"],
             )
-        except (ValidationError, PermissionDenied) as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        except ValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(
-            {
-                "detail": "Lead marked as sale.",
-                "project_id": project.id,
-            }
-        )
+        return Response({"detail": "Lead marked as sale.", "project_id": project.id})
+
+
 
 
 class LeadMarkNoSaleAPIView(APIView):

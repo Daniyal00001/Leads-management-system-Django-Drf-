@@ -107,12 +107,9 @@ def complete_phase(phase, completed_by):
 
     return phase
 
-
-def mark_lead_as_sale(lead, decided_by):
-    # BD transitions lead to sale — ONLY once all phases are
-    # completed. Auto-creates the Project (req #9).
-
-    from apps.projects.models import Project  # local import avoids circular import between apps
+def mark_lead_as_sale(lead, decided_by, sale_amount):
+    from apps.projects.models import Project
+    from apps.commissions.services import calculate_commissions_for_sale
 
     if not lead.all_phases_completed:
         raise ValidationError("All phases must be completed before marking as sale.")
@@ -128,10 +125,13 @@ def mark_lead_as_sale(lead, decided_by):
         project = Project.objects.create(
             lead=lead,
             title=lead.project_name,
+            sale_amount=sale_amount,      
             created_by=decided_by,
         )
-    return project
 
+        calculate_commissions_for_sale(project, sale_amount)
+
+    return project
 
 def mark_lead_as_no_sale(lead, decided_by):
     if not lead.all_phases_completed:

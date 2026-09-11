@@ -22,6 +22,8 @@ urlpatterns = [
     path("", include("apps.comments.urls")),
 
     path("", include("apps.projects.urls")),
+    
+    path("", include("apps.commissions.urls")),
 
 ]
 

@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from decimal import Decimal
+
 
 from apps.accounts.models import User
 from .models import Lead, Phase, PhaseManagerHistory, PhaseEngineer
@@ -121,3 +123,9 @@ class PhaseCreateSerializer(serializers.ModelSerializer):
         if attrs["due_date"] < attrs["start_date"]:
             raise serializers.ValidationError("due_date cannot be before start_date.")
         return attrs
+
+        # =================================
+
+
+class LeadMarkSaleSerializer(serializers.Serializer):
+    sale_amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.01"))
