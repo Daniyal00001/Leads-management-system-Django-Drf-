@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications{% endblock %}
+{% block topbar_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Inbox</p>
+        <h1>Notifications</h1>
+        <p class="page-subtitle">Phase assignments, declines, and project assignments land here.</p>
+    </div>
+    {% if unread_notification_count %}
+        <button type="button" class="btn btn-secondary" onclick="markAllRead()">Mark all as read</button>
+    {% endif %}
+</div>
+
+<section class="card">
+    {% for item in items %}
+    <div class="notification-item {% if not item.notification.is_read %}is-unread{% endif %}">
+        <div>
+            {% if item.url %}
+                <a href="{{ item.url }}">{{ item.notification.message }}</a>
+            {% else %}
+                <strong>{{ item.notification.message }}</strong>
+            {% endif %}
+            <div class="muted">{{ item.notification.get_type_display }} · {{ item.notification.created_at|date:"M d, Y H:i" }}</div>
+        </div>
+        {% if not item.notification.is_read %}
+            <button type="button" class="btn btn-ghost btn-sm" onclick="markRead({{ item.notification.id }})">Mark read</button>
+        {% else %}
+            <span class="muted">Read</span>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <p class="empty-title">You're all caught up</p>
+        <p class="empty-text">New assignments and workflow updates will appear here.</p>
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markRead(id) {
+    apiPost(`/api/notifications/${id}/read/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+}
+function markAllRead() {
+    apiPost("/api/notifications/read-all/", {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+}
+</script>
+{% endblock %}

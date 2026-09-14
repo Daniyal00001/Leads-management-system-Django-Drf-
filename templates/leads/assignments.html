@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}My Assignments{% endblock %}
+{% block topbar_title %}My Assignments{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Work queue</p>
+        <h1>My assignments</h1>
+        <p class="page-subtitle">
+            {% if is_tm and is_engineer %}
+                Technical Manager phases and Engineer work in one place.
+            {% elif is_tm or is_super_admin %}
+                Accept or decline assigned phases, then add engineers and complete the work.
+            {% else %}
+                Accept assigned phase work and mark it done when finished.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+{% if show_manager_section %}
+<section class="card table-card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <h2>Technical Manager phases</h2>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Lead</th>
+                    <th>Phase</th>
+                    <th>Manager</th>
+                    <th>Status</th>
+                    <th>Due</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for phase in manager_phases %}
+                <tr>
+                    <td><a href="{% url 'leads:lead-page-detail' phase.lead_id %}">{{ phase.lead.project_name }}</a></td>
+                    <td>Phase {{ phase.order }} · {{ phase.get_type_display }}</td>
+                    <td>{{ phase.current_manager.email|default:"—" }}</td>
+                    <td><span class="badge badge-{{ phase.status }}">{{ phase.get_status_display }}</span></td>
+                    <td>{{ phase.due_date }}</td>
+                    <td>
+                        {% if phase.status == "pending_acceptance" and phase.current_manager_id == user.id %}
+                            <div class="inline-actions">
+                                <button type="button" class="btn btn-success btn-sm" onclick="acceptPhase({{ phase.id }})">Accept</button>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="declinePhase({{ phase.id }})">Decline</button>
+                            </div>
+                        {% else %}
+                            <a class="btn btn-ghost btn-sm" href="{% url 'leads:lead-page-detail' phase.lead_id %}">Open</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">No manager assignments right now.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if show_engineer_section %}
+<section class="card table-card">
+    <div class="card-header">
+        <h2>Engineer work</h2>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Lead</th>
+                    <th>Phase</th>
+                    <th>Engineer</th>
+                    <th>Status</th>
+                    <th>Due</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in engineer_assignments %}
+                <tr>
+                    <td><a href="{% url 'leads:lead-page-detail' assignment.phase.lead_id %}">{{ assignment.phase.lead.project_name }}</a></td>
+                    <td>Phase {{ assignment.phase.order }} · {{ assignment.phase.get_type_display }}</td>
+                    <td>{{ assignment.engineer.email }}</td>
+                    <td><span class="badge badge-{{ assignment.status }}">{{ assignment.get_status_display }}</span></td>
+                    <td>{{ assignment.phase.due_date }}</td>
+                    <td>
+                        {% if assignment.engineer_id == user.id and assignment.status == "pending" %}
+                            <div class="inline-actions">
+                                <button type="button" class="btn btn-success btn-sm" onclick="acceptEngineer({{ assignment.id }})">Accept</button>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="declineEngineer({{ assignment.id }})">Decline</button>
+                            </div>
+                        {% elif assignment.engineer_id == user.id and assignment.status == "accepted" %}
+                            <button type="button" class="btn btn-primary btn-sm" onclick="markEngineerDone({{ assignment.id }})">Mark done</button>
+                        {% else %}
+                            <a class="btn btn-ghost btn-sm" href="{% url 'leads:lead-page-detail' assignment.phase.lead_id %}">Open</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">No engineer assignments right now.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function acceptPhase(phaseId) {
+    apiPost(`/api/phases/${phaseId}/accept/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+}
+function declinePhase(phaseId) {
+    const comment = prompt("Reason for declining (optional):", "");
+    if (comment === null) return;
+    apiPost(`/api/phases/${phaseId}/decline/`, { comment }).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+}
+function acceptEngineer(assignmentId) {
+    apiPost(`/api/phase-engineers/${assignmentId}/accept/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+}
+function declineEngineer(assignmentId) {
+    const comment = prompt("Reason for declining (optional):", "");
+    if (comment === null) return;
+    apiPost(`/api/phase-engineers/${assignmentId}/decline/`, { comment }).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+}
+function markEngineerDone(assignmentId) {
+    if (!confirm("Mark this assignment as done?")) return;
+    apiPost(`/api/phase-engineers/${assignmentId}/mark-done/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+}
+</script>
+{% endblock %}

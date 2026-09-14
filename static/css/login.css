@@ -1,0 +1,123 @@
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: #f5f6f8;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 36px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.login-header {
+    margin-bottom: 28px;
+}
+
+.login-brand {
+    margin: 0 0 16px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.login-header h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.login-header p {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.login-form .form-group {
+    margin-bottom: 16px;
+}
+
+.login-form .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.login-form .form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #111827;
+    font-size: 14px;
+    outline: none;
+}
+
+.login-form .form-group input:focus {
+    border-color: #1f2937;
+}
+
+.login-form .errorlist {
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.login-error {
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
+.login-error ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.login-button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 11px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #1f2937;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background: #111827;
+}
+
+.login-button:focus {
+    outline: 2px solid #1f2937;
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 28px 20px;
+    }
+}

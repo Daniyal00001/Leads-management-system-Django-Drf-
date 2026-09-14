@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load role_tags %}
+
+{% block title %}Users & Roles{% endblock %}
+{% block topbar_title %}Users & Roles{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Super Admin</p>
+        <h1>Users & roles</h1>
+        <p class="page-subtitle">A person can hold more than one role. Check every role they should have, then save.</p>
+    </div>
+</div>
+
+<section class="card table-card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Current roles</th>
+                    <th>Assign roles</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in users %}
+                <tr>
+                    <td>
+                        <strong>{{ member.display_name }}</strong>
+                        <div class="muted">{{ member.email }}</div>
+                    </td>
+                    <td>
+                        <div class="role-badges">
+                            {% for role in member.role_names %}
+                                <span class="role-badge role-badge-{{ role|role_slug }}">{{ role }}</span>
+                            {% empty %}
+                                {% if member.is_superuser %}
+                                    <span class="role-badge role-badge-super-admin">Super Admin</span>
+                                {% else %}
+                                    <span class="muted">None</span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if member.is_superuser and "Super Admin" not in member.role_names %}
+                                <span class="role-badge role-badge-super-admin">Django superuser</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <form id="roles-{{ member.id }}" class="checkbox-row">
+                            {% for role in all_roles %}
+                            <label>
+                                <input type="checkbox" value="{{ role }}" {% if role in member.role_names %}checked{% endif %}>
+                                {{ role }}
+                            </label>
+                            {% endfor %}
+                        </form>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveRoles({{ member.id }})">Save</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">No users found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function saveRoles(userId) {
+    const form = document.getElementById(`roles-${userId}`);
+    const roles = [...form.querySelectorAll("input:checked")].map((input) => input.value);
+    apiPost(`/api/users/${userId}/roles/`, { roles })
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+}
+</script>
+{% endblock %}

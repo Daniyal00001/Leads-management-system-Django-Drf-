@@ -1,73 +1,76 @@
 {% extends "base.html" %}
+
 {% block title %}New Lead{% endblock %}
+{% block topbar_title %}New Lead{% endblock %}
 
 {% block content %}
-<h1>New Lead</h1>
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Business Developer</p>
+        <h1>New lead</h1>
+        <p class="page-subtitle">Capture the client and project details. You can add phases after the lead is created.</p>
+    </div>
+    <a href="{% url 'leads:lead-page-list' %}" class="btn btn-ghost">Back to leads</a>
+</div>
 
-<form id="lead-form" class="stacked-form">
-    <div class="form-group">
-        <label>Project Name</label>
-        <input type="text" id="project_name" required>
+<section class="card">
+    <div class="card-body">
+        <form id="lead-form" class="stacked-form" action="#" onsubmit="return false;">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="project_name">Project name</label>
+                <input type="text" id="project_name" required>
+            </div>
+            <div class="form-group">
+                <label for="client_name">Client name</label>
+                <input type="text" id="client_name" required>
+            </div>
+            <div class="form-group">
+                <label for="client_address">Client address</label>
+                <textarea id="client_address"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="client_email">Client email</label>
+                <input type="email" id="client_email" required>
+            </div>
+            <div class="form-group">
+                <label for="client_contact">Client contact</label>
+                <input type="text" id="client_contact" required>
+            </div>
+            <div class="form-group">
+                <label for="platform_used">Platform used</label>
+                <input type="text" id="platform_used" required>
+            </div>
+            <div class="form-group">
+                <label for="comments_note">Notes</label>
+                <textarea id="comments_note"></textarea>
+            </div>
+            <div id="form-errors" class="alert alert-error" style="display:none;"></div>
+            <button type="submit" class="btn btn-primary">Create lead</button>
+        </form>
     </div>
-    <div class="form-group">
-        <label>Client Name</label>
-        <input type="text" id="client_name" required>
-    </div>
-    <div class="form-group">
-        <label>Client Address</label>
-        <textarea id="client_address"></textarea>
-    </div>
-    <div class="form-group">
-        <label>Client Email</label>
-        <input type="email" id="client_email" required>
-    </div>
-    <div class="form-group">
-        <label>Client Contact</label>
-        <input type="text" id="client_contact" required>
-    </div>
-    <div class="form-group">
-        <label>Platform Used</label>
-        <input type="text" id="platform_used" required>
-    </div>
-    <div class="form-group">
-        <label>Test Type</label>
-        <select id="test_type" required>
-            <option value="test_project">Test Project</option>
-            <option value="interview">Interview</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>Notes</label>
-        <textarea id="comments_note"></textarea>
-    </div>
-    <div id="form-errors" class="alert alert-error" style="display:none;"></div>
-    <button type="submit">Create Lead</button>
-</form>
+</section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.getElementById('lead-form').addEventListener('submit', function (e) {
-    e.preventDefault();
+document.getElementById("lead-form").addEventListener("submit", function (event) {
+    event.preventDefault();
     const payload = {
-        project_name: document.getElementById('project_name').value,
-        client_name: document.getElementById('client_name').value,
-        client_address: document.getElementById('client_address').value,
-        client_email: document.getElementById('client_email').value,
-        client_contact: document.getElementById('client_contact').value,
-        platform_used: document.getElementById('platform_used').value,
-        test_type: document.getElementById('test_type').value,
-        comments_note: document.getElementById('comments_note').value,
+        project_name: document.getElementById("project_name").value,
+        client_name: document.getElementById("client_name").value,
+        client_address: document.getElementById("client_address").value,
+        client_email: document.getElementById("client_email").value,
+        client_contact: document.getElementById("client_contact").value,
+        platform_used: document.getElementById("platform_used").value,
+        comments_note: document.getElementById("comments_note").value,
     };
-
-    apiPost('/api/leads/create/', payload)
-        .then(data => {
-            window.location.href = `/leads/${data.id}/`;
-        })
-        .catch(err => {
-            const box = document.getElementById('form-errors');
-            box.style.display = 'block';
-            box.textContent = JSON.stringify(err.data);
+    apiPost("/api/leads/create/", payload)
+        .then((data) => { window.location.href = `/leads/${data.id}/`; })
+        .catch((err) => {
+            const box = document.getElementById("form-errors");
+            box.style.display = "block";
+            box.textContent = formatApiError(err);
         });
 });
 </script>

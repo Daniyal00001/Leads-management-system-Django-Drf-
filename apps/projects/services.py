@@ -18,4 +18,8 @@ def assign_project_manager(project, manager, assigned_by):
         )
         if not created:
             raise ValidationError("Manager is already assigned to this project.")
+
+    from apps.notifications.services import notify_project_assigned
+
+    notify_project_assigned(project, manager)
     return obj

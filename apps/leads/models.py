@@ -13,7 +13,7 @@ class Lead(TimeStampedModel):
     client_email = models.EmailField()
     client_contact = models.CharField(max_length=50)
     platform_used = models.CharField(max_length=100)
-    test_type = models.CharField(max_length=20, choices=TestType.choices)
+    test_type = models.CharField(max_length=20, choices=TestType.choices, blank=True, null=True)
     comments_note = models.TextField(blank=True)  
 
     created_by = models.ForeignKey(

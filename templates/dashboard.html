@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load role_tags %}
+
+{% block title %}Dashboard{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Overview</p>
+        <h1>Welcome, {{ user.display_name }}</h1>
+        <p class="page-subtitle">
+            {% if user_roles %}
+                You are signed in as {{ user_roles|join:", " }}.
+                {% if user_roles|length > 1 %}Actions for every role are shown together.{% endif %}
+            {% elif is_super_admin %}
+                You are signed in as Super Admin.
+            {% else %}
+                No role is assigned yet. Ask a Super Admin to grant access.
+            {% endif %}
+        </p>
+    </div>
+    <div class="header-actions">
+        {% if is_super_admin %}
+            <a href="{% url 'leads:lead-page-create' %}" class="btn btn-primary">+ New Lead</a>
+            <a href="{% url 'accounts:user-page-list' %}" class="btn btn-secondary">Manage Users</a>
+            <a href="/admin/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">Django Admin ↗</a>
+        {% elif is_bd %}
+            <a href="{% url 'leads:lead-page-create' %}" class="btn btn-primary">+ New Lead</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <span class="label">Open leads</span>
+        <span class="value">{{ open_leads }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="label">Sales</span>
+        <span class="value">{{ sale_leads }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="label">Active projects</span>
+        <span class="value">{{ active_projects }}</span>
+    </div>
+    {% if is_super_admin %}
+    <div class="stat-card">
+        <span class="label">Org commissions</span>
+        <span class="value">Rs. {{ total_commission_org|floatformat:0 }}</span>
+    </div>
+    {% elif show_commissions %}
+    <div class="stat-card">
+        <span class="label">My commissions</span>
+        <span class="value">Rs. {{ commission_total|floatformat:0 }}</span>
+    </div>
+    {% else %}
+    <div class="stat-card">
+        <span class="label">No-sale leads</span>
+        <span class="value">{{ no_sale_leads }}</span>
+    </div>
+    {% endif %}
+</div>
+
+{% if role_guides %}
+<section class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <h2>Your role{% if role_guides|length > 1 %}s{% endif %}</h2>
+    </div>
+    <div class="card-body role-guide-list">
+        {% for guide in role_guides %}
+        <div class="role-guide">
+            <span class="role-badge role-badge-{{ guide.role|role_slug }}">{{ guide.role }}</span>
+            <p>{{ guide.text }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if is_super_admin and user_count %}
+<section class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <div>
+            <h2>Team & Workforce</h2>
+            <p class="muted" style="margin: 2px 0 0; font-size: 13px;">Active organization members across all role groups</p>
+        </div>
+        <a href="{% url 'accounts:user-page-list' %}" class="btn btn-ghost btn-sm">Manage roles & access →</a>
+    </div>
+    <div class="card-body stat-grid" style="margin: 0; padding: 20px;">
+        <div class="stat-card">
+            <span class="label">Total Users</span>
+            <span class="value">{{ user_count.total }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="label">Business Developers</span>
+            <span class="value">{{ user_count.business_developer }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="label">Technical Managers</span>
+            <span class="value">{{ user_count.technical_manager }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="label">Engineers</span>
+            <span class="value">{{ user_count.engineer }}</span>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+
+<div class="queue-grid">
+    {% if show_bd_queue %}
+    <section class="card">
+        <div class="card-header">
+            <h2>Business Developer queue</h2>
+        </div>
+        <div class="card-body">
+            {% if ready_to_decide %}
+                {% for lead in ready_to_decide %}
+                <div class="work-item">
+                    <div>
+                        <a href="{% url 'leads:lead-page-detail' lead.pk %}">{{ lead.project_name }}</a>
+                        <div class="muted">Ready to mark sale / no-sale</div>
+                    </div>
+                    <span class="badge badge-{{ lead.status }}">{{ lead.get_status_display }}</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% for phase in needs_reassignment %}
+            <div class="work-item">
+                <div>
+                    <a href="{% url 'leads:lead-page-detail' phase.lead_id %}">{{ phase.lead.project_name }}</a>
+                    <div class="muted">Phase {{ phase.order }} needs a new technical manager</div>
+                </div>
+                <span class="badge badge-{{ phase.status }}">{{ phase.get_status_display }}</span>
+            </div>
+            {% endfor %}
+            {% if not ready_to_decide and not needs_reassignment %}
+                <div class="empty-state">
+                    <p class="empty-title">No BD actions waiting</p>
+                    <p class="empty-text">Create a lead or wait for phases to complete.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if show_tm_queue %}
+    <section class="card">
+        <div class="card-header">
+            <h2>Technical Manager queue</h2>
+        </div>
+        <div class="card-body">
+            {% for phase in pending_phases %}
+            <div class="work-item">
+                <div>
+                    <a href="{% url 'leads:lead-page-detail' phase.lead_id %}">{{ phase.lead.project_name }}</a>
+                    <div class="muted">Phase {{ phase.order }} · {{ phase.get_type_display }} · due {{ phase.due_date }}</div>
+                </div>
+                <span class="badge badge-{{ phase.status }}">Accept or decline</span>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <p class="empty-title">No phases pending acceptance</p>
+                <p class="empty-text">Assigned phases will show up here.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if show_engineer_queue %}
+    <section class="card">
+        <div class="card-header">
+            <h2>Engineer queue</h2>
+        </div>
+        <div class="card-body">
+            {% for assignment in pending_engineer %}
+            <div class="work-item">
+                <div>
+                    <a href="{% url 'leads:lead-page-detail' assignment.phase.lead_id %}">{{ assignment.phase.lead.project_name }}</a>
+                    <div class="muted">Phase {{ assignment.phase.order }} waiting for you to accept</div>
+                </div>
+                <span class="badge badge-pending">Pending</span>
+            </div>
+            {% endfor %}
+            {% for assignment in active_engineer %}
+            <div class="work-item">
+                <div>
+                    <a href="{% url 'leads:lead-page-detail' assignment.phase.lead_id %}">{{ assignment.phase.lead.project_name }}</a>
+                    <div class="muted">Phase {{ assignment.phase.order }} in progress</div>
+                </div>
+                <span class="badge badge-accepted">Accepted</span>
+            </div>
+            {% endfor %}
+            {% if not pending_engineer and not active_engineer %}
+            <div class="empty-state">
+                <p class="empty-title">No assigned work</p>
+                <p class="empty-text">A technical manager will add you to a phase.</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<section class="card table-card">
+    <div class="card-header">
+        <h2>Recent leads</h2>
+        <a href="{% url 'leads:lead-page-list' %}" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Created by</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in recent_leads %}
+                <tr>
+                    <td><a href="{% url 'leads:lead-page-detail' lead.pk %}">{{ lead.project_name }}</a></td>
+                    <td>{{ lead.client_name }}</td>
+                    <td><span class="badge badge-{{ lead.status }}">{{ lead.get_status_display }}</span></td>
+                    <td>{{ lead.created_by.email }}</td>
+                    <td>{{ lead.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No leads yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

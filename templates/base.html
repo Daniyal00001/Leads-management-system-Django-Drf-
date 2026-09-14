@@ -1,36 +1,112 @@
 {% load static %}
+{% load role_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Lead Management Engine{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v={% now 'U' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar">
-        <a href="{% url 'leads:lead-page-list' %}" class="brand">Lead Management Engine</a>
+{% block body %}
+<div class="app-shell">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <p class="sidebar-kicker">Lead Management</p>
+            <h1><a href="{% url 'home' %}">Engine</a></h1>
+        </div>
+
         {% if user.is_authenticated %}
-            <span>{{ user.email }}</span>
-            <form action="{% url 'accounts:logout' %}" method="post" class="inline-form">
+        <div class="sidebar-user">
+            <span class="sidebar-user-name">{{ user.display_name }}</span>
+            <span class="sidebar-user-email">{{ user.email }}</span>
+            <div class="role-badges">
+                {% for role in user_roles %}
+                    <span class="role-badge role-badge-{{ role|role_slug }}">{{ role }}</span>
+                {% empty %}
+                    <span class="role-badge">No role assigned</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Dashboard</a>
+            <a href="{% url 'leads:lead-page-list' %}" class="nav-link {% if request.resolver_match.namespace == 'leads' and request.resolver_match.url_name != 'assignments' %}is-active{% endif %}">Leads</a>
+            <a href="{% url 'projects:project-page-list' %}" class="nav-link {% if request.resolver_match.namespace == 'projects' %}is-active{% endif %}">Projects</a>
+            {% if is_tm or is_engineer or is_super_admin %}
+            <a href="{% url 'leads:assignments' %}" class="nav-link {% if request.resolver_match.url_name == 'assignments' %}is-active{% endif %}">My Assignments</a>
+            {% endif %}
+            {% if is_bd or is_tm or is_super_admin %}
+            <a href="{% url 'commissions:my-commissions-page' %}" class="nav-link {% if request.resolver_match.namespace == 'commissions' %}is-active{% endif %}">My Commissions</a>
+            {% endif %}
+            <a href="{% url 'notifications:notification-page-list' %}" class="nav-link {% if request.resolver_match.namespace == 'notifications' %}is-active{% endif %}">
+                Notifications
+                {% if unread_notification_count %}
+                    <span class="nav-count">{{ unread_notification_count }}</span>
+                {% endif %}
+            </a>
+            {% if is_super_admin %}
+            <a href="{% url 'accounts:user-page-list' %}" class="nav-link {% if request.resolver_match.url_name == 'user-page-list' %}is-active{% endif %}">Users & Roles</a>
+            <a href="/admin/" target="_blank" rel="noopener noreferrer" class="nav-link nav-link-admin">
+                <span>Django Admin</span>
+                <span class="nav-ext-badge">Admin ↗</span>
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <form action="{% url 'accounts:logout' %}" method="post">
                 {% csrf_token %}
-                <button type="submit">Logout</button>
+                <button type="submit" class="btn-logout">Log out</button>
             </form>
-        {% else %}
-            <a href="{% url 'accounts:login' %}">Login</a>
+        </div>
         {% endif %}
-    </nav>
+    </aside>
 
-    <main class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+    <div class="app-main">
+        <header class="topbar">
+            <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Open menu">☰</button>
+            <div class="topbar-title">{% block topbar_title %}{% endblock %}</div>
+            <div class="topbar-roles">
+                {% if user.is_authenticated %}
+                    {% for role in user_roles %}
+                        <span class="role-badge role-badge-{{ role|role_slug }}">{{ role }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </header>
 
-        {% block content %}{% endblock %}
-    </main>
+        <main class="page">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
 
-    <script src="{% static 'js/csrf.js' %}"></script>
-    {% block extra_js %}{% endblock %}     
+<script src="{% static 'js/csrf.js' %}?v={% now 'U' %}"></script>
+<script>
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("sidebar-overlay");
+const toggle = document.getElementById("sidebar-toggle");
+if (toggle && sidebar) {
+    toggle.addEventListener("click", () => {
+        sidebar.classList.toggle("is-open");
+        overlay.classList.toggle("is-visible");
+    });
+    overlay.addEventListener("click", () => {
+        sidebar.classList.remove("is-open");
+        overlay.classList.remove("is-visible");
+    });
+}
+</script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

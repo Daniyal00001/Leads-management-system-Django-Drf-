@@ -23,6 +23,11 @@ class User(AbstractUser):
         return self.email
 
     @property
+    def display_name(self):
+        name = self.get_full_name().strip()
+        return name or self.email
+
+    @property
     def role_names(self):
         # list of group names this user belongs to
         return list(self.groups.values_list("name", flat=True))

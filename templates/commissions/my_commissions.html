@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load role_tags %}
+
+{% block title %}My Commissions{% endblock %}
+{% block topbar_title %}My Commissions{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Earnings</p>
+        <h1>{% if showing_all %}All commissions{% else %}My commissions{% endif %}</h1>
+        <p class="page-subtitle">
+            {% if showing_all %}
+                Every commission recorded on closed sales.
+            {% else %}
+                Commission earned when a lead is marked as a sale. Business Developers receive 5% and Technical Managers receive 10%.
+            {% endif %}
+        </p>
+    </div>
+    {% if is_super_admin %}
+    <div class="header-actions">
+        {% if showing_all %}
+            <a href="{% url 'commissions:my-commissions-page' %}" class="btn btn-ghost">Mine</a>
+            <a href="?view=all" class="btn btn-primary">All records</a>
+        {% else %}
+            <a href="{% url 'commissions:my-commissions-page' %}" class="btn btn-primary">Mine</a>
+            <a href="?view=all" class="btn btn-ghost">All records</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <span class="label">Total earned</span>
+        <span class="value">Rs. {{ total_commission|floatformat:2 }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="label">Records</span>
+        <span class="value">{{ record_count }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="label">Related sale amount</span>
+        <span class="value">Rs. {{ total_sales|floatformat:0 }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="label">View</span>
+        <span class="value" style="font-size: 18px;">{% if showing_all %}All users{% else %}Just you{% endif %}</span>
+    </div>
+</div>
+
+<section class="card table-card">
+    <div class="card-header">
+        <h2>Commission records</h2>
+    </div>
+    {% if page_obj.object_list %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    {% if showing_all %}<th>User</th>{% endif %}
+                    <th>Role</th>
+                    <th>Sale amount</th>
+                    <th>%</th>
+                    <th>Commission</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'projects:project-page-detail' rec.project_id %}">{{ rec.project.title }}</a>
+                    </td>
+                    {% if showing_all %}<td>{{ rec.user.email }}</td>{% endif %}
+                    <td><span class="role-badge role-badge-{{ rec.role_name|role_slug }}">{{ rec.role_name }}</span></td>
+                    <td>Rs. {{ rec.sale_amount|floatformat:2 }}</td>
+                    <td>{{ rec.commission_percentage }}%</td>
+                    <td><strong>Rs. {{ rec.commission_amount|floatformat:2 }}</strong></td>
+                    <td>{{ rec.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-title">No commissions yet</p>
+        <p class="empty-text">Records appear here after a Business Developer marks a lead as a sale.</p>
+    </div>
+    {% endif %}
+</section>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?{% if showing_all %}view=all&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?{% if showing_all %}view=all&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

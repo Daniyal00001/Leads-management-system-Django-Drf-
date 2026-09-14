@@ -16,3 +16,7 @@ class IsTechnicalManager(HasAnyRole):
 
 class IsBDOrTechnicalManager(HasAnyRole):
     allowed_roles = [Roles.BUSINESS_DEVELOPER, Roles.TECHNICAL_MANAGER]
+
+
+class IsEngineer(HasAnyRole):
+    allowed_roles = [Roles.ENGINEER]

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Access denied{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="page-kicker">403</p>
+        <h1>You don't have access to this page</h1>
+        <p class="page-subtitle">This action belongs to a different role. Check the badges in the sidebar for the roles on your account, or ask a Super Admin to assign the right one.</p>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-primary">Back to dashboard</a>
+</div>
+{% endblock %}

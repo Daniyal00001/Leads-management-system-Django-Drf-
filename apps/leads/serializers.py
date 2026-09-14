@@ -52,7 +52,7 @@ class LeadDetailSerializer(LeadListSerializer): # from this we get user model
     class Meta(LeadListSerializer.Meta):        # from this we get leadlist seriliazer meta behaviour
         fields = LeadListSerializer.Meta.fields + [
             "client_address", "client_email", "client_contact",
-            "platform_used", "test_type", "comments_note",
+            "platform_used", "comments_note",
             "phases", "all_phases_completed", "sale_decided_by",
         ]
 
@@ -108,24 +108,37 @@ class LeadCreateSerializer(serializers.ModelSerializer):
         fields = [
             "id", "project_name", "client_name", "client_address",
             "client_email", "client_contact", "platform_used",
-            "test_type", "comments_note",
+            "comments_note",
         ]
         read_only_fields = ["id"]
 
 
 class PhaseCreateSerializer(serializers.ModelSerializer):
+    manager_id = serializers.IntegerField(required=False, allow_null=True)
+
     class Meta:
         model = Phase
-        fields = ["id", "type", "start_date", "due_date"]  
+        fields = ["id", "type", "start_date", "due_date", "manager_id"]
         read_only_fields = ["id"]
 
     def validate(self, attrs):
-        if attrs["due_date"] < attrs["start_date"]:
+        if attrs.get("due_date") and attrs.get("start_date") and attrs["due_date"] < attrs["start_date"]:
             raise serializers.ValidationError("due_date cannot be before start_date.")
         return attrs
 
         # =================================
 
-
 class LeadMarkSaleSerializer(serializers.Serializer):
     sale_amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.01"))
+    manager_id = serializers.IntegerField(required=True)
+
+    def validate_manager_id(self, value):
+        from apps.accounts.models import User
+        from apps.accounts.roles import Roles
+        try:
+            user = User.objects.get(pk=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Manager not found.")
+        if not user.groups.filter(name=Roles.TECHNICAL_MANAGER).exists():
+            raise serializers.ValidationError("Selected user is not a Technical Manager.")
+        return value

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Projects{% endblock %}
+{% block topbar_title %}Projects{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Closed sales</p>
+        <h1>Projects</h1>
+        <p class="page-subtitle">Projects are created when a Business Developer marks a lead as a sale. Assign technical managers to continue delivery.</p>
+    </div>
+</div>
+
+<section class="card table-card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Lead</th>
+                    <th>Status</th>
+                    <th>Sale amount</th>
+                    <th>Managers</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in page_obj %}
+                <tr>
+                    <td><a href="{% url 'projects:project-page-detail' project.pk %}">{{ project.title }}</a></td>
+                    <td>{{ project.lead.project_name }}</td>
+                    <td><span class="badge badge-{{ project.status }}">{{ project.get_status_display }}</span></td>
+                    <td>Rs. {{ project.sale_amount|floatformat:2 }}</td>
+                    <td>
+                        {% for pm in project.project_managers.all %}
+                            {{ pm.manager.email }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            —
+                        {% endfor %}
+                    </td>
+                    <td>{{ project.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <p class="empty-title">No projects yet</p>
+                            <p class="empty-text">A project appears here after a lead is marked as a sale.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
