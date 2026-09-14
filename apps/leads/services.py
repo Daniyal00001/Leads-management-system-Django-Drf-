@@ -107,12 +107,9 @@ def complete_phase(phase, completed_by):
 
     return phase
 
-
-def mark_lead_as_sale(lead, decided_by):
-    # BD transitions lead to sale — ONLY once all phases are
-    # completed. Auto-creates the Project (req #9).
-
-    from apps.projects.models import Project  # local import avoids circular import between apps
+def mark_lead_as_sale(lead, decided_by, sale_amount):
+    from apps.projects.models import Project
+    from apps.commissions.services import calculate_commissions_for_sale
 
     if not lead.all_phases_completed:
         raise ValidationError("All phases must be completed before marking as sale.")
@@ -128,10 +125,13 @@ def mark_lead_as_sale(lead, decided_by):
         project = Project.objects.create(
             lead=lead,
             title=lead.project_name,
+            sale_amount=sale_amount,      
             created_by=decided_by,
         )
-    return project
 
+        calculate_commissions_for_sale(project, sale_amount)
+
+    return project
 
 def mark_lead_as_no_sale(lead, decided_by):
     if not lead.all_phases_completed:
@@ -146,3 +146,27 @@ def mark_lead_as_no_sale(lead, decided_by):
         lead.save(update_fields=["status", "sale_decided_at", "sale_decided_by", "updated_at"])
 
     return lead
+
+
+   # ========================================
+   # =========================================
+
+def create_lead(validated_data, created_by):
+    with transaction.atomic():
+        lead = Lead.objects.create(created_by=created_by, **validated_data)    #** → dictionary unpack
+    return lead
+
+
+def create_phase(lead, validated_data, created_by):
+    if lead.status != LeadStatus.OPEN:
+        raise ValidationError("Cannot add phases to a lead that has already been decided.")
+
+    with transaction.atomic():
+        last_order = lead.phases.aggregate(models.Max("order"))["order__max"] or 0
+        phase = Phase.objects.create(
+            lead=lead,
+            created_by=created_by,
+            order=last_order + 1,
+            **validated_data,
+        )
+    return phase

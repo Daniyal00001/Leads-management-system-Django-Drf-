@@ -1,0 +1,592 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ lead.project_name }}{% endblock %}
+
+{% block content %}
+
+<h1>{{ lead.project_name }}</h1>
+
+<p>
+    <strong>Client:</strong>
+    {{ lead.client_name }} — {{ lead.client_email }} — {{ lead.client_contact }}
+</p>
+
+<p>
+    <strong>Platform:</strong>
+    {{ lead.platform_used }}
+</p>
+
+<p>
+    <strong>Status:</strong>
+    <span class="badge badge-{{ lead.status }}">
+        {{ lead.get_status_display }}
+    </span>
+</p>
+
+<p>
+    <strong>Created by:</strong>
+    {{ lead.created_by.email }}
+    on {{ lead.created_at|date:"M d, Y" }}
+</p>
+
+{% if lead.status == "sale" %}
+<p>
+    <strong>Sale decided:</strong>
+    {{ lead.sale_decided_at|date:"M d, Y" }} by {{ lead.sale_decided_by.email }}
+</p>
+    {% if lead.project %}
+    <p>
+        <a href="{% url 'projects:project-page-detail' lead.project.id %}">View Project →</a>
+    </p>
+    {% endif %}
+{% endif %}
+
+<h2>Phases</h2>
+
+{% if lead.status == "open" %}
+<details class="add-phase-details">
+
+    <summary>+ Add Phase</summary>
+
+    <form id="phase-form" class="stacked-form">
+
+        <div class="form-group">
+            <label>Type</label>
+
+            <select id="phase_type" required>
+                <option value="test_project">
+                    Test Project
+                </option>
+
+                <option value="interview">
+                    Interview
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Start Date</label>
+
+            <input
+                type="date"
+                id="phase_start_date"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label>Due Date</label>
+
+            <input
+                type="date"
+                id="phase_due_date"
+                required
+            >
+        </div>
+
+        <div
+            id="phase-form-errors"
+            class="alert alert-error"
+            style="display:none;"
+        ></div>
+
+        <button type="submit">
+            Add Phase
+        </button>
+
+    </form>
+
+</details>
+{% endif %}
+
+
+<table class="data-table">
+
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>Manager</th>
+            <th>Status</th>
+            <th>Start</th>
+            <th>Due</th>
+            <th>Completed</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody id="phases-tbody">
+
+        {% for phase in lead.phases.all %}
+
+        <tr id="phase-row-{{ phase.id }}">
+
+            <td>
+                {{ phase.order }}
+            </td>
+
+            <td>
+                {{ phase.get_type_display }}
+            </td>
+
+            <td>
+                {{ phase.current_manager.email|default:"—" }}
+            </td>
+
+            <td class="phase-status">
+
+                <span class="badge badge-{{ phase.status }}">
+                    {{ phase.get_status_display }}
+                </span>
+
+            </td>
+
+            <td>
+                {{ phase.start_date }}
+            </td>
+
+            <td>
+                {{ phase.due_date }}
+            </td>
+
+            <td>
+                {{ phase.completed_at|date:"M d, Y"|default:"—" }}
+            </td>
+
+            <td>
+
+                {% if phase.status == "pending_acceptance" and phase.current_manager_id == user.id %}
+
+                    <button onclick="acceptPhase({{ phase.id }})">
+                        Accept
+                    </button>
+
+                    <button onclick="declinePhase({{ phase.id }})">
+                        Decline
+                    </button>
+
+                {% elif phase.status == "accepted" or phase.status == "in_progress" %}
+
+                    <button onclick="completePhase({{ phase.id }})">
+                        Mark Complete
+                    </button>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+            <td colspan="8">
+                No phases added yet.
+            </td>
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+
+{% if lead.status == "open" and lead.all_phases_completed %}
+<div class="decision-box">
+    <h2>Ready to Decide</h2>
+    <p>All phases are completed. Mark this lead as a sale or no-sale.</p>
+
+    <form id="mark-sale-form" class="stacked-form">
+        <div class="form-group">
+            <label>Sale Amount (Rs.)</label>
+            <input type="number" id="sale_amount" step="0.01" min="0.01" required>
+        </div>
+        <div id="sale-form-errors" class="alert alert-error" style="display:none;"></div>
+        <button type="submit">Mark as Sale</button>
+    </form>
+
+    <button onclick="markNoSale()" class="btn-secondary">Mark as No Sale</button>
+</div>
+{% endif %}
+
+
+<h2>Comments</h2>
+
+<div id="comments-list">
+    <p>Loading comments...</p>
+</div>
+
+
+<form id="comment-form" enctype="multipart/form-data">
+
+    <textarea
+        id="comment-body"
+        placeholder="Add a comment..."
+        required
+    ></textarea>
+
+    <input
+        type="file"
+        id="comment-images"
+        multiple
+        accept="image/*"
+    >
+
+    <button type="submit">
+        Post Comment
+    </button>
+
+</form>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+const LEAD_ID = {{ lead.id }};
+
+
+function acceptPhase(phaseId) {
+
+    apiPost(`/api/phases/${phaseId}/accept/`, {})
+
+        .then(() => location.reload())
+
+        .catch(err =>
+            alert(
+                err.data.detail ||
+                "Failed to accept phase."
+            )
+        );
+}
+
+
+function declinePhase(phaseId) {
+
+    const comment = prompt(
+        "Reason for declining (optional):",
+        ""
+    );
+
+    if (comment === null) return;
+
+    apiPost(
+        `/api/phases/${phaseId}/decline/`,
+        { comment }
+    )
+
+        .then(() => location.reload())
+
+        .catch(err =>
+            alert(
+                err.data.detail ||
+                "Failed to decline phase."
+            )
+        );
+}
+
+
+function completePhase(phaseId) {
+
+    if (!confirm("Mark this phase as complete?")) {
+        return;
+    }
+
+    apiPost(
+        `/api/phases/${phaseId}/complete/`,
+        {}
+    )
+
+        .then(() => location.reload())
+
+        .catch(err =>
+            alert(
+                err.data.detail ||
+                "Failed to complete phase."
+            )
+        );
+}
+
+
+/*
+ * Add Phase
+ */
+
+const phaseForm =
+    document.getElementById('phase-form');
+
+if (phaseForm) {
+
+    phaseForm.addEventListener(
+        'submit',
+        function (e) {
+
+            e.preventDefault();
+
+            const payload = {
+
+                type:
+                    document.getElementById(
+                        'phase_type'
+                    ).value,
+
+                start_date:
+                    document.getElementById(
+                        'phase_start_date'
+                    ).value,
+
+                due_date:
+                    document.getElementById(
+                        'phase_due_date'
+                    ).value,
+            };
+
+
+            apiPost(
+                `/api/leads/${LEAD_ID}/phases/create/`,
+                payload
+            )
+
+                .then(() => location.reload())
+
+                .catch(err => {
+
+                    const box =
+                        document.getElementById(
+                            'phase-form-errors'
+                        );
+
+                    box.style.display = 'block';
+
+                    box.textContent =
+                        JSON.stringify(err.data);
+
+                });
+
+        }
+    );
+
+}
+
+
+/*
+ * Mark Sale / No Sale
+ */
+
+const markSaleForm =
+    document.getElementById('mark-sale-form');
+
+if (markSaleForm) {
+
+    markSaleForm.addEventListener(
+        'submit',
+        function (e) {
+
+            e.preventDefault();
+
+            const sale_amount =
+                document.getElementById(
+                    'sale_amount'
+                ).value;
+
+            apiPost(
+                `/api/leads/${LEAD_ID}/mark-sale/`,
+                { sale_amount }
+            )
+
+                .then(data => {
+
+                    window.location.href =
+                        `/projects/${data.project_id}/`;
+
+                })
+
+                .catch(err => {
+
+                    const box =
+                        document.getElementById(
+                            'sale-form-errors'
+                        );
+
+                    box.style.display = 'block';
+
+                    box.textContent =
+                        JSON.stringify(err.data);
+
+                });
+
+        }
+    );
+
+}
+
+
+function markNoSale() {
+
+    if (!confirm(
+        "Mark this lead as No Sale? This cannot be undone."
+    )) {
+        return;
+    }
+
+    apiPost(
+        `/api/leads/${LEAD_ID}/mark-no-sale/`,
+        {}
+    )
+
+        .then(() => location.reload())
+
+        .catch(err =>
+            alert(
+                err.data.detail ||
+                "Failed to mark as no sale."
+            )
+        );
+}
+
+
+function loadComments() {
+
+    fetch(
+        `/api/comments/?model_name=lead&object_id=${LEAD_ID}`
+    )
+
+        .then(res => res.json())
+
+        .then(data => {
+
+            const container =
+                document.getElementById(
+                    'comments-list'
+                );
+
+            const results =
+                data.results || data;
+
+            if (results.length === 0) {
+
+                container.innerHTML =
+                    "<p>No comments yet.</p>";
+
+                return;
+            }
+
+            container.innerHTML =
+                results.map(c => `
+
+                    <div class="comment">
+
+                        <strong>
+                            ${c.user.email}
+                        </strong>
+
+                        —
+                        ${new Date(
+                            c.created_at
+                        ).toLocaleString()}
+
+                        <p>
+                            ${c.body}
+                        </p>
+
+                        ${c.attachments
+                            .map(a => `
+                                <img
+                                    src="${a.image}"
+                                    class="comment-img"
+                                >
+                            `)
+                            .join('')
+                        }
+
+                    </div>
+
+                `).join('');
+
+        });
+
+}
+
+
+document
+    .getElementById('comment-form')
+    .addEventListener(
+        'submit',
+        function (e) {
+
+            e.preventDefault();
+
+            const body =
+                document.getElementById(
+                    'comment-body'
+                ).value;
+
+            const files =
+                document.getElementById(
+                    'comment-images'
+                ).files;
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                'model_name',
+                'lead'
+            );
+
+            formData.append(
+                'object_id',
+                LEAD_ID
+            );
+
+            formData.append(
+                'body',
+                body
+            );
+
+            for (const file of files) {
+
+                formData.append(
+                    'images',
+                    file
+                );
+
+            }
+
+            apiPost(
+                '/api/comments/create/',
+                formData,
+                true
+            )
+
+                .then(() => {
+
+                    document
+                        .getElementById(
+                            'comment-form'
+                        )
+                        .reset();
+
+                    loadComments();
+
+                })
+
+                .catch(err =>
+                    alert(
+                        "Failed to post comment."
+                    )
+                );
+
+        }
+    );
+
+
+loadComments();
+
+</script>
+
+{% endblock %}

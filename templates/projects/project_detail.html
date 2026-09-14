@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load role_tags %}
+{% block title %}{{ project.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ project.title }}</h1>
+<p><strong>Status:</strong> <span class="badge badge-{{ project.status }}">{{ project.get_status_display }}</span></p>
+<p><strong>Sale Amount:</strong> Rs. {{ project.sale_amount }}</p>
+<p><strong>Created by:</strong> {{ project.created_by.email }} on {{ project.created_at|date:"M d, Y" }}</p>
+<p><strong>From Lead:</strong> <a href="{% url 'leads:lead-page-detail' project.lead.id %}">{{ project.lead.project_name }}</a></p>
+
+<h2>Assigned Managers</h2>
+<table class="data-table">
+    <thead>
+        <tr><th>Manager</th><th>Assigned By</th><th>Assigned At</th></tr>
+    </thead>
+    <tbody>
+        {% for pm in project.project_managers.all %}
+        <tr>
+            <td>{{ pm.manager.email }}</td>
+            <td>{{ pm.assigned_by.email }}</td>
+            <td>{{ pm.assigned_at|date:"M d, Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No managers assigned yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if user|has_role:"Business Developer" or user|has_role:"Super Admin" %}
+<details class="add-phase-details">
+    <summary>+ Assign Manager</summary>
+    <form id="assign-manager-form" class="stacked-form">
+        <div class="form-group">
+            <label>Manager User ID</label>
+            <input type="number" id="manager_id" required>
+            <small>Temporary: replace with a proper dropdown once a "list technical managers" endpoint exists.</small>
+        </div>
+        <div id="assign-manager-errors" class="alert alert-error" style="display:none;"></div>
+        <button type="submit">Assign</button>
+    </form>
+</details>
+{% endif %}
+
+<h2>Commission Records</h2>
+<table class="data-table">
+    <thead>
+        <tr><th>User</th><th>Role</th><th>Sale Amount</th><th>%</th><th>Commission</th></tr>
+    </thead>
+    <tbody>
+        {% for rec in project.commission_records.all %}
+        <tr>
+            <td>{{ rec.user.email }}</td>
+            <td>{{ rec.role_name }}</td>
+            <td>Rs. {{ rec.sale_amount }}</td>
+            <td>{{ rec.commission_percentage }}%</td>
+            <td>Rs. {{ rec.commission_amount }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No commission records yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const PROJECT_ID = {{ project.id }};
+
+const assignForm = document.getElementById('assign-manager-form');
+if (assignForm) {
+    assignForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const manager_id = parseInt(document.getElementById('manager_id').value);
+
+        apiPost(`/api/projects/${PROJECT_ID}/assign-manager/`, { manager_id })
+            .then(() => location.reload())
+            .catch(err => {
+                const box = document.getElementById('assign-manager-errors');
+                box.style.display = 'block';
+                box.textContent = JSON.stringify(err.data);
+            });
+    });
+}
+</script>
+{% endblock %}
