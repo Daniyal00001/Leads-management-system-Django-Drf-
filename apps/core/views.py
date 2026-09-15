@@ -92,36 +92,6 @@ def dashboard_page(request):
             .order_by("phase__due_date")
         )
 
-    role_guides = []
-    if super_admin:
-        role_guides.append(
-            {
-                "role": "Super Admin",
-                "text": "Oversee the pipeline, assign user roles, and step into any workflow.",
-            }
-        )
-    if is_business_developer(user):
-        role_guides.append(
-            {
-                "role": "Business Developer",
-                "text": "Create leads, add phases, assign technical managers, and close sales.",
-            }
-        )
-    if tm:
-        role_guides.append(
-            {
-                "role": "Technical Manager",
-                "text": "Accept assigned phases, add engineers, and mark phases complete.",
-            }
-        )
-    if engineer:
-        role_guides.append(
-            {
-                "role": "Engineer",
-                "text": "Accept assigned work, complete it, and mark it done.",
-            }
-        )
-
     return render(
         request,
         "dashboard.html",
@@ -145,7 +115,6 @@ def dashboard_page(request):
             "show_tm_queue": tm or super_admin,
             "show_engineer_queue": engineer,
             "show_commissions": bd or tm or super_admin,
-            "role_guides": role_guides,
             "user_count": user_role_counts() if super_admin else None,
         },
     )

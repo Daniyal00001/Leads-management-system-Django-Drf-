@@ -1,0 +1,345 @@
+/* Lead Detail Stylesheet */
+
+/* Header & layout */
+.lead-header {
+    margin-bottom: 20px;
+}
+
+.lead-title {
+    margin: 4px 0 6px;
+}
+
+.icon-aligned {
+    vertical-align: -2px;
+}
+
+.lead-card-spacing {
+    margin-bottom: 20px;
+}
+
+/* Phase Create Form Card */
+.phase-form-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.phase-form-title {
+    font-size: 15px;
+    margin: 0;
+}
+
+.phase-form-body {
+    padding: 16px 18px;
+}
+
+.phase-form-hint {
+    margin: 0 0 14px;
+    font-size: 13px;
+}
+
+.full-width-form {
+    max-width: 100%;
+}
+
+.phase-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+/* Deliverables section */
+.deliverables-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.deliverables-title {
+    font-size: 17px;
+    margin: 0;
+    font-weight: 700;
+}
+
+.deliverables-count {
+    font-size: 13px;
+}
+
+.phase-card-declined {
+    border-left: 4px solid var(--red);
+}
+
+.phase-type-title {
+    margin: 2px 0 4px;
+    font-size: 16px;
+}
+
+.phase-meta-text {
+    margin: 0;
+    font-size: 13px;
+}
+
+.status-completed-inline {
+    color: #059669;
+    font-weight: 600;
+}
+
+.status-completed-badge {
+    color: #059669;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-completed-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #10b981;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Person details & rows */
+.person-row-clean {
+    border-bottom: none;
+    padding: 4px 0;
+}
+
+.person-name {
+    font-size: 14px;
+}
+
+.person-name-sm {
+    font-size: 13px;
+}
+
+.person-email {
+    font-size: 12px;
+}
+
+.person-email-sm {
+    font-size: 11px;
+}
+
+.badge-flex {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-flex-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.badge-declined-sm {
+    font-size: 11px;
+}
+
+.unassigned-manager-text {
+    font-size: 13px;
+    margin: 4px 0 8px;
+}
+
+.phase-actions-divider {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+}
+
+.change-manager-summary {
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.assign-form-row {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+}
+
+.assign-form-row-sm {
+    margin-top: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+}
+
+.assign-form-row-md {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+}
+
+.assign-select-input {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 8px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.btn-no-shrink {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.btn-flex-center {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Engineers */
+.engineer-count-label {
+    font-weight: 500;
+    text-transform: none;
+}
+
+.engineer-list-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.engineer-card-row {
+    background: #fff;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+/* Sale / No-sale Decision & Conversion Panel */
+.sale-card-success {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+}
+
+.sale-panel-title {
+    margin: 0;
+    font-size: 15px;
+    color: #065f46;
+}
+
+.sale-panel-title-flex {
+    margin: 0;
+    font-size: 15px;
+    color: #065f46;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sale-panel-sub {
+    font-size: 13px;
+    margin: 0 0 14px;
+    color: #047857;
+}
+
+.stat-value-success {
+    font-size: 15px;
+    color: #059669;
+}
+
+.sale-header-flex {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.sale-badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.sale-decision-note {
+    font-size: 12px;
+    margin: 6px 0 0;
+    font-style: italic;
+}
+
+.modal-actions-right {
+    margin-top: 14px;
+    text-align: right;
+}
+
+.phase-declined-title {
+    margin: 0;
+    font-size: 15px;
+    color: var(--red);
+}
+
+.card-subheading {
+    font-size: 14px;
+    margin: 0;
+    font-weight: 700;
+}
+
+.link-primary-custom {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* Utility spacing classes */
+.spacing-mt-2 { margin-top: 8px; }
+.spacing-mt-2_5 { margin-top: 10px; }
+.spacing-mt-3 { margin-top: 12px; }
+.spacing-mt-3_5 { margin-top: 14px; }
+.spacing-mb-2 { margin-bottom: 8px; }
+.spacing-mb-2_5 { margin-bottom: 10px; }
+.spacing-mb-3 { margin-bottom: 12px; }
+.spacing-mb-3_5 { margin-bottom: 14px; }
+.spacing-mb-0 { margin-bottom: 0; }
+.spacing-m-0 { margin: 0; }
+.text-xs-compact { font-size: 12px; margin: 0; }
+.text-xs-mt { font-size: 12px; margin-top: 10px; }
+.flex-space-between-mb {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.flex-space-between-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.flex-space-between-sm {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.flex-gap-2 {
+    display: flex;
+    gap: 8px;
+}
+
+.sale-amount-input {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.comment-file-input {
+    font-size: 12px;
+    max-width: 190px;
+}

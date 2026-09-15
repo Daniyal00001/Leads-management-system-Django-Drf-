@@ -43,7 +43,7 @@ a:hover { color: var(--slate-hover); }
 
 .sidebar {
     width: var(--sidebar-width);
-    background: var(--slate);
+    background: #334155; /* slate-700 */
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -813,3 +813,26 @@ a.btn {
     .search-form { margin-left: 0; width: 100%; }
     .search-form input { min-width: 0; flex: 1; }
 }
+
+[hidden], .is-hidden {
+    display: none !important;
+}
+
+/* History collapsible sections */
+details > summary {
+    list-style: none;
+}
+details > summary::-webkit-details-marker {
+    display: none;
+}
+details > summary::after {
+    content: '▸';
+    font-size: 10px;
+    color: #94a3b8;
+    transition: transform 0.2s;
+    display: inline-block;
+}
+details[open] > summary::after {
+    transform: rotate(90deg);
+}
+

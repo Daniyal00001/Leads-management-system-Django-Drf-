@@ -1,0 +1,15 @@
+/* Dashboard specific styles */
+.dashboard-card-spacing,
+.workforce-section {
+    margin-bottom: 24px;
+}
+
+.workforce-subtitle {
+    margin: 2px 0 0;
+    font-size: 13px;
+}
+
+.workforce-grid {
+    margin: 0;
+    padding: 20px;
+}

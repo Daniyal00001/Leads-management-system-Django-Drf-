@@ -44,6 +44,9 @@ def accept_phase(phase, manager):
             action=PhaseManagerHistory.Action.ACCEPTED,
             performed_by=manager,
         )
+
+    from apps.notifications.services import notify_phase_accepted
+    notify_phase_accepted(phase, manager)
     return phase
 
 
@@ -134,6 +137,9 @@ def decline_engineer_assignment(phase_engineer, engineer, comment=""):
             comment=comment,
             performed_by=engineer,
         )
+
+    from apps.notifications.services import notify_engineer_declined
+    notify_engineer_declined(phase_engineer.phase, engineer, comment)
     return phase_engineer
 
 
@@ -169,6 +175,8 @@ def complete_phase(phase, completed_by):
         phase.completed_by = completed_by
         phase.save(update_fields=["status", "completed_at", "completed_by", "updated_at"])
 
+    from apps.notifications.services import notify_phase_completed
+    notify_phase_completed(phase, completed_by)
     return phase
 
 def mark_lead_as_sale(lead, decided_by, sale_amount, manager_id=None):
@@ -205,6 +213,9 @@ def mark_lead_as_sale(lead, decided_by, sale_amount, manager_id=None):
 
         calculate_commissions_for_sale(project)
 
+    from apps.notifications.services import notify_lead_sale
+    notify_lead_sale(lead, project, decided_by)
+
     return project
 
 def mark_lead_as_no_sale(lead, decided_by):
@@ -219,6 +230,9 @@ def mark_lead_as_no_sale(lead, decided_by):
         lead.sale_decided_by = decided_by
         lead.save(update_fields=["status", "sale_decided_at", "sale_decided_by", "updated_at"])
 
+    from apps.notifications.services import notify_lead_no_sale
+    notify_lead_no_sale(lead, decided_by)
+
     return lead
 
 
@@ -228,6 +242,9 @@ def mark_lead_as_no_sale(lead, decided_by):
 def create_lead(validated_data, created_by):
     with transaction.atomic():
         lead = Lead.objects.create(created_by=created_by, **validated_data)    #** → dictionary unpack
+
+    from apps.notifications.services import notify_lead_created
+    notify_lead_created(lead, created_by)
     return lead
 
 

@@ -29,10 +29,14 @@ class MyCommissionsAPIView(generics.ListAPIView):
 @login_required
 def my_commissions_page(request):
     # Engineers do not receive commissions
-    if is_engineer(request.user):
+    if is_engineer(request.user) and not is_super_admin(request.user):
         raise PermissionDenied("Engineers do not have access to commission records.")
 
-    showing_all = request.GET.get("view") == "all" and is_super_admin(request.user)
+    if is_super_admin(request.user):
+        showing_all = request.GET.get("view") != "mine"
+    else:
+        showing_all = False
+
     qs = CommissionRecord.objects.select_related("project", "user").order_by("-created_at")
     if not showing_all:
         qs = qs.filter(user=request.user)

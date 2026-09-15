@@ -1,106 +1,112 @@
 {% extends "base.html" %}
 {% load role_tags %}
 
-{% block title %}My Commissions{% endblock %}
-{% block topbar_title %}My Commissions{% endblock %}
+{% block title %}{% if is_super_admin %}Commissions{% else %}My Commissions{% endif %}{% endblock %}
+{% block topbar_title %}{% if is_super_admin %}Commissions{% else %}My Commissions{% endif %}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <p class="page-kicker">Earnings</p>
-        <h1>{% if showing_all %}All commissions{% else %}My commissions{% endif %}</h1>
-        <p class="page-subtitle">
-            {% if showing_all %}
-                Every commission recorded on closed sales.
-            {% else %}
-                Commission earned when a lead is marked as a sale. Business Developers receive 5% and Technical Managers receive 10%.
-            {% endif %}
-        </p>
-    </div>
-    {% if is_super_admin %}
-    <div class="header-actions">
+<div class="mb-6">
+    <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 mb-1">Earnings</p>
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">
+        {% if showing_all %}All commissions{% else %}My commissions{% endif %}
+    </h1>
+    <p class="mt-1 text-sm text-slate-500">
         {% if showing_all %}
-            <a href="{% url 'commissions:my-commissions-page' %}" class="btn btn-ghost">Mine</a>
-            <a href="?view=all" class="btn btn-primary">All records</a>
+            Every commission recorded on closed sales across the organization.
         {% else %}
-            <a href="{% url 'commissions:my-commissions-page' %}" class="btn btn-primary">Mine</a>
-            <a href="?view=all" class="btn btn-ghost">All records</a>
+            Commission earned when a lead is marked as a sale. Business Developers receive 5% and Technical Managers receive 10%.
         {% endif %}
-    </div>
-    {% endif %}
+    </p>
 </div>
 
-<div class="stat-grid">
-    <div class="stat-card">
-        <span class="label">Total earned</span>
-        <span class="value">Rs. {{ total_commission|floatformat:2 }}</span>
+<!-- Stats grid -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Total earned</p>
+        <p class="text-xl sm:text-2xl font-bold text-slate-800 tabular-nums">Rs. {{ total_commission|floatformat:2 }}</p>
     </div>
-    <div class="stat-card">
-        <span class="label">Records</span>
-        <span class="value">{{ record_count }}</span>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Records</p>
+        <p class="text-3xl font-bold text-slate-800 tabular-nums">{{ record_count }}</p>
     </div>
-    <div class="stat-card">
-        <span class="label">Related sale amount</span>
-        <span class="value">Rs. {{ total_sales|floatformat:0 }}</span>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Related sale amount</p>
+        <p class="text-xl sm:text-2xl font-bold text-slate-800 tabular-nums">Rs. {{ total_sales|floatformat:0 }}</p>
     </div>
-    <div class="stat-card">
-        <span class="label">View</span>
-        <span class="value" style="font-size: 18px;">{% if showing_all %}All users{% else %}Just you{% endif %}</span>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">View</p>
+        <p class="text-sm font-semibold text-brand-600">{% if showing_all %}All users{% else %}Just you{% endif %}</p>
     </div>
 </div>
 
-<section class="card table-card">
-    <div class="card-header">
-        <h2>Commission records</h2>
+<!-- Commission records table -->
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="text-sm font-semibold text-slate-800">Commission records</h2>
     </div>
+
     {% if page_obj.object_list %}
-    <div class="table-wrap">
-        <table class="data-table">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
             <thead>
-                <tr>
-                    <th>Project</th>
-                    {% if showing_all %}<th>User</th>{% endif %}
-                    <th>Role</th>
-                    <th>Sale amount</th>
-                    <th>%</th>
-                    <th>Commission</th>
-                    <th>Date</th>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Project</th>
+                    {% if showing_all %}<th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden md:table-cell">User</th>{% endif %}
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Role</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Sale amount</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">%</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Commission</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden md:table-cell">Date</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-50">
                 {% for rec in page_obj %}
-                <tr>
-                    <td>
-                        <a href="{% url 'projects:project-page-detail' rec.project_id %}">{{ rec.project.title }}</a>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-5 py-3.5 font-medium">
+                        <a href="{% url 'projects:project-page-detail' rec.project_id %}" class="text-brand-600 hover:text-brand-700">{{ rec.project.title }}</a>
                     </td>
-                    {% if showing_all %}<td>{{ rec.user.email }}</td>{% endif %}
-                    <td><span class="role-badge role-badge-{{ rec.role_name|role_slug }}">{{ rec.role_name }}</span></td>
-                    <td>Rs. {{ rec.sale_amount|floatformat:2 }}</td>
-                    <td>{{ rec.commission_percentage }}%</td>
-                    <td><strong>Rs. {{ rec.commission_amount|floatformat:2 }}</strong></td>
-                    <td>{{ rec.created_at|date:"M d, Y" }}</td>
+                    {% if showing_all %}<td class="px-5 py-3.5 text-slate-500 hidden md:table-cell">{{ rec.user.email }}</td>{% endif %}
+                    <td class="px-5 py-3.5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                            {% if rec.role_name|role_slug == 'business-developer' %}bg-emerald-100 text-emerald-700
+                            {% elif rec.role_name|role_slug == 'technical-manager' %}bg-blue-100 text-blue-700
+                            {% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ rec.role_name }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden sm:table-cell whitespace-nowrap">Rs. {{ rec.sale_amount|floatformat:2 }}</td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden sm:table-cell">{{ rec.commission_percentage }}%</td>
+                    <td class="px-5 py-3.5 font-semibold text-slate-800 whitespace-nowrap">Rs. {{ rec.commission_amount|floatformat:2 }}</td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden md:table-cell whitespace-nowrap">{{ rec.created_at|date:"M d, Y" }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <div class="empty-state">
-        <p class="empty-title">No commissions yet</p>
-        <p class="empty-text">Records appear here after a Business Developer marks a lead as a sale.</p>
+    <div class="px-5 py-14 text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 text-amber-600 mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <p class="text-sm font-semibold text-slate-700">No commissions yet</p>
+        <p class="text-xs text-slate-400 mt-1">Records appear here after a Business Developer marks a lead as a sale.</p>
     </div>
     {% endif %}
 </section>
 
 {% if page_obj.has_other_pages %}
-<div class="pagination">
-    {% if page_obj.has_previous %}
-        <a href="?{% if showing_all %}view=all&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
-    {% endif %}
-    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}
-        <a href="?{% if showing_all %}view=all&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
-    {% endif %}
+<div class="flex items-center justify-between mt-5 px-1">
+    <span class="text-xs text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+            <a href="?{% if showing_all %}view=all&{% endif %}page={{ page_obj.previous_page_number }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all">← Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a href="?{% if showing_all %}view=all&{% endif %}page={{ page_obj.next_page_number }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all">Next →</a>
+        {% endif %}
+    </div>
 </div>
 {% endif %}
 {% endblock %}

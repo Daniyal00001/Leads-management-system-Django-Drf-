@@ -5,64 +5,73 @@
 {% block topbar_title %}Users & Roles{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <p class="page-kicker">Super Admin</p>
-        <h1>Users & roles</h1>
-        <p class="page-subtitle">A person can hold more than one role. Check every role they should have, then save.</p>
-    </div>
+<div class="mb-6">
+    <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 mb-1">Super Admin</p>
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Users &amp; roles</h1>
+    <p class="mt-1 text-sm text-slate-500">A person can hold more than one role. Check every role they should have, then save.</p>
 </div>
 
-<section class="card table-card">
-    <div class="table-wrap">
-        <table class="data-table">
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
             <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Current roles</th>
-                    <th>Assign roles</th>
-                    <th></th>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">User</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Current roles</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Assign roles</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap"></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-50">
                 {% for member in users %}
-                <tr>
-                    <td>
-                        <strong>{{ member.display_name }}</strong>
-                        <div class="muted">{{ member.email }}</div>
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="px-5 py-4">
+                        <p class="text-sm font-semibold text-slate-800">{{ member.display_name }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">{{ member.email }}</p>
                     </td>
-                    <td>
-                        <div class="role-badges">
+                    <td class="px-5 py-4 hidden sm:table-cell">
+                        <div id="roles-badges-{{ member.id }}" class="flex flex-wrap gap-1">
                             {% for role in member.role_names %}
-                                <span class="role-badge role-badge-{{ role|role_slug }}">{{ role }}</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                    {% if role|role_slug == 'business-developer' %}bg-emerald-100 text-emerald-700
+                                    {% elif role|role_slug == 'technical-manager' %}bg-blue-100 text-blue-700
+                                    {% elif role|role_slug == 'engineer' %}bg-violet-100 text-violet-700
+                                    {% elif role|role_slug == 'super-admin' %}bg-rose-100 text-rose-700
+                                    {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                    {{ role }}
+                                </span>
                             {% empty %}
                                 {% if member.is_superuser %}
-                                    <span class="role-badge role-badge-super-admin">Super Admin</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-700">Super Admin</span>
                                 {% else %}
-                                    <span class="muted">None</span>
+                                    <span class="text-xs text-slate-400">None</span>
                                 {% endif %}
                             {% endfor %}
                             {% if member.is_superuser and "Super Admin" not in member.role_names %}
-                                <span class="role-badge role-badge-super-admin">Django superuser</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">Django superuser</span>
                             {% endif %}
                         </div>
                     </td>
-                    <td>
-                        <form id="roles-{{ member.id }}" class="checkbox-row">
+                    <td class="px-5 py-4">
+                        <form id="roles-{{ member.id }}" class="flex flex-wrap gap-3">
                             {% for role in all_roles %}
-                            <label>
-                                <input type="checkbox" value="{{ role }}" {% if role in member.role_names %}checked{% endif %}>
+                            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none">
+                                <input type="checkbox" value="{{ role }}" {% if role in member.role_names %}checked{% endif %}
+                                       class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400">
                                 {{ role }}
                             </label>
                             {% endfor %}
                         </form>
                     </td>
-                    <td>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="saveRoles({{ member.id }})">Save</button>
+                    <td class="px-5 py-4">
+                        <button id="save-btn-{{ member.id }}" type="button" onclick="saveRoles({{ member.id }})"
+                                class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-100 text-sky-800 hover:bg-sky-200 border border-sky-300 transition-all whitespace-nowrap">Save</button>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4">No users found.</td></tr>
+                <tr>
+                    <td colspan="4" class="px-5 py-10 text-center text-sm text-slate-400">No users found.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -74,10 +83,52 @@
 <script>
 function saveRoles(userId) {
     const form = document.getElementById(`roles-${userId}`);
+    const btn = document.getElementById(`save-btn-${userId}`) || (form && form.closest("tr").querySelector("button"));
     const roles = [...form.querySelectorAll("input:checked")].map((input) => input.value);
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+    }
+
     apiPost(`/api/users/${userId}/roles/`, { roles })
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+        .then((updatedUser) => {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = "Saved ✓";
+                btn.classList.remove("bg-sky-100", "text-sky-800", "border-sky-300");
+                btn.classList.add("bg-emerald-100", "text-emerald-800", "border-emerald-300");
+                setTimeout(() => {
+                    btn.textContent = "Save";
+                    btn.classList.remove("bg-emerald-100", "text-emerald-800", "border-emerald-300");
+                    btn.classList.add("bg-sky-100", "text-sky-800", "border-sky-300");
+                }, 2000);
+            }
+
+            const badgesContainer = document.getElementById(`roles-badges-${userId}`);
+            if (badgesContainer) {
+                const roleList = (updatedUser && updatedUser.roles) ? updatedUser.roles : roles;
+                if (roleList.length === 0) {
+                    badgesContainer.innerHTML = '<span class="text-xs text-slate-400">None</span>';
+                } else {
+                    badgesContainer.innerHTML = roleList.map(r => {
+                        let colorClass = 'bg-slate-100 text-slate-600';
+                        if (r === 'Business Developer') colorClass = 'bg-emerald-100 text-emerald-700';
+                        else if (r === 'Technical Manager') colorClass = 'bg-blue-100 text-blue-700';
+                        else if (r === 'Engineer') colorClass = 'bg-violet-100 text-violet-700';
+                        else if (r === 'Super Admin') colorClass = 'bg-rose-100 text-rose-700';
+                        return `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colorClass}">${r}</span>`;
+                    }).join('');
+                }
+            }
+        })
+        .catch((err) => {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = "Save";
+            }
+            alert(formatApiError(err));
+        });
 }
 </script>
 {% endblock %}

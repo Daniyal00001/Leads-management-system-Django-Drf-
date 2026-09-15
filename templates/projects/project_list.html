@@ -4,50 +4,48 @@
 {% block topbar_title %}Projects{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
     <div>
-        <p class="page-kicker">Closed sales</p>
-        <h1>Projects</h1>
-        <p class="page-subtitle">Projects are created when a Business Developer marks a lead as a sale. Assign technical managers to continue delivery.</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 mb-1">Closed sales</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Projects</h1>
+        <p class="mt-1 text-sm text-slate-500">Projects are created when a Business Developer marks a lead as a sale. Assign technical managers to continue delivery.</p>
     </div>
 </div>
 
-<section class="card table-card">
-    <div class="table-wrap">
-        <table class="data-table">
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
             <thead>
-                <tr>
-                    <th>Project</th>
-                    <th>Lead</th>
-                    <th>Status</th>
-                    <th>Sale amount</th>
-                    <th>Managers</th>
-                    <th>Created</th>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Project</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Lead</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden md:table-cell">Sale amount</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Managers</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Created</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-50">
                 {% for project in page_obj %}
-                <tr>
-                    <td><a href="{% url 'projects:project-page-detail' project.pk %}">{{ project.title }}</a></td>
-                    <td>{{ project.lead.project_name }}</td>
-                    <td><span class="badge badge-{{ project.status }}">{{ project.get_status_display }}</span></td>
-                    <td>Rs. {{ project.sale_amount|floatformat:2 }}</td>
-                    <td>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-5 py-3.5 font-medium">
+                        <a href="{% url 'projects:project-page-detail' project.pk %}" class="text-brand-600 hover:text-brand-700">{{ project.title }}</a>
+                    </td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden sm:table-cell">{{ project.lead.project_name }}</td>
+                    <td class="px-5 py-3.5"><span class="badge badge-{{ project.status }}">{{ project.get_status_display }}</span></td>
+                    <td class="px-5 py-3.5 text-slate-600 hidden md:table-cell whitespace-nowrap">Rs. {{ project.sale_amount|floatformat:2 }}</td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden lg:table-cell">
                         {% for pm in project.project_managers.all %}
                             {{ pm.manager.email }}{% if not forloop.last %}, {% endif %}
-                        {% empty %}
-                            —
-                        {% endfor %}
+                        {% empty %}—{% endfor %}
                     </td>
-                    <td>{{ project.created_at|date:"M d, Y" }}</td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden lg:table-cell whitespace-nowrap">{{ project.created_at|date:"M d, Y" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6">
-                        <div class="empty-state">
-                            <p class="empty-title">No projects yet</p>
-                            <p class="empty-text">A project appears here after a lead is marked as a sale.</p>
-                        </div>
+                    <td colspan="6" class="px-5 py-12 text-center">
+                        <p class="text-sm font-medium text-slate-500">No projects yet</p>
+                        <p class="text-xs text-slate-400 mt-1">A project appears here after a lead is marked as a sale.</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -57,10 +55,18 @@
 </section>
 
 {% if page_obj.has_other_pages %}
-<div class="pagination">
-    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
-    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+<div class="flex items-center justify-between mt-5 px-1">
+    <span class="text-xs text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all">← Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all">Next →</a>
+        {% endif %}
+    </div>
 </div>
 {% endif %}
 {% endblock %}
