@@ -4,38 +4,55 @@
 {% block topbar_title %}Notifications{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
     <div>
-        <p class="page-kicker">Inbox</p>
-        <h1>Notifications</h1>
-        <p class="page-subtitle">Phase assignments, declines, and project assignments land here.</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 mb-1">Inbox</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Notifications</h1>
+        <p class="mt-1 text-sm text-slate-500">Phase assignments, declines, and project assignments land here.</p>
     </div>
     {% if unread_notification_count %}
-        <button type="button" class="btn btn-secondary" onclick="markAllRead()">Mark all as read</button>
+        <button type="button" onclick="markAllRead()"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Mark all as read
+        </button>
     {% endif %}
 </div>
 
-<section class="card">
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-50">
     {% for item in items %}
-    <div class="notification-item {% if not item.notification.is_read %}is-unread{% endif %}">
-        <div>
-            {% if item.url %}
-                <a href="{{ item.url }}">{{ item.notification.message }}</a>
-            {% else %}
-                <strong>{{ item.notification.message }}</strong>
-            {% endif %}
-            <div class="muted">{{ item.notification.get_type_display }} · {{ item.notification.created_at|date:"M d, Y H:i" }}</div>
+    <div id="notification-item-{{ item.notification.id }}"
+         class="flex items-start justify-between gap-4 px-5 py-4 transition-colors {% if not item.notification.is_read %}bg-sky-50/50{% else %}hover:bg-slate-50/50{% endif %}">
+        <div class="flex items-start gap-3 min-w-0">
+            <!-- Unread dot -->
+            <span class="unread-dot mt-1.5 shrink-0 w-2 h-2 rounded-full {% if not item.notification.is_read %}bg-sky-500{% else %}bg-transparent{% endif %}"></span>
+            <div class="min-w-0">
+                {% if item.url %}
+                    <a href="{{ item.url }}" class="text-sm font-medium text-slate-800 hover:text-brand-600 transition-colors">{{ item.notification.message }}</a>
+                {% else %}
+                    <p class="text-sm font-medium text-slate-800">{{ item.notification.message }}</p>
+                {% endif %}
+                <p class="text-xs text-slate-400 mt-0.5">{{ item.notification.get_type_display }} · {{ item.notification.created_at|date:"M d, Y H:i" }}</p>
+            </div>
         </div>
-        {% if not item.notification.is_read %}
-            <button type="button" class="btn btn-ghost btn-sm" onclick="markRead({{ item.notification.id }})">Mark read</button>
-        {% else %}
-            <span class="muted">Read</span>
-        {% endif %}
+        <div class="action-cell shrink-0">
+            {% if not item.notification.is_read %}
+                <button type="button" onclick="markRead({{ item.notification.id }})"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-all">
+                    Mark read
+                </button>
+            {% else %}
+                <span class="text-xs text-slate-400 font-medium">Read</span>
+            {% endif %}
+        </div>
     </div>
     {% empty %}
-    <div class="empty-state">
-        <p class="empty-title">You're all caught up</p>
-        <p class="empty-text">New assignments and workflow updates will appear here.</p>
+    <div class="px-5 py-16 text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <p class="text-sm font-semibold text-slate-700">You're all caught up</p>
+        <p class="text-xs text-slate-400 mt-1">New assignments and workflow updates will appear here.</p>
     </div>
     {% endfor %}
 </section>
@@ -44,10 +61,60 @@
 {% block extra_js %}
 <script>
 function markRead(id) {
-    apiPost(`/api/notifications/${id}/read/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/notifications/${id}/read/`, {})
+        .then(() => {
+            const item = document.getElementById(`notification-item-${id}`);
+            if (item) {
+                item.classList.remove('bg-sky-50/50');
+                const dot = item.querySelector('.unread-dot');
+                if (dot) {
+                    dot.classList.remove('bg-sky-500');
+                    dot.classList.add('bg-transparent');
+                }
+                const actionCell = item.querySelector('.action-cell');
+                if (actionCell) {
+                    actionCell.innerHTML = '<span class="text-xs text-slate-400 font-medium">Read</span>';
+                }
+            }
+            updateSidebarNotificationBadge(-1);
+        })
+        .catch((err) => alert(formatApiError(err)));
 }
+
 function markAllRead() {
-    apiPost("/api/notifications/read-all/", {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
+    apiPost("/api/notifications/read-all/", {})
+        .then(() => {
+            document.querySelectorAll('[id^="notification-item-"]').forEach(item => {
+                item.classList.remove('bg-sky-50/50');
+                const dot = item.querySelector('.unread-dot');
+                if (dot) {
+                    dot.classList.remove('bg-sky-500');
+                    dot.classList.add('bg-transparent');
+                }
+                const actionCell = item.querySelector('.action-cell');
+                if (actionCell) {
+                    actionCell.innerHTML = '<span class="text-xs text-slate-400 font-medium">Read</span>';
+                }
+            });
+            const markAllBtn = document.querySelector('button[onclick="markAllRead()"]');
+            if (markAllBtn) markAllBtn.remove();
+            clearSidebarNotificationBadge();
+        })
+        .catch((err) => alert(formatApiError(err)));
+}
+
+function updateSidebarNotificationBadge(delta) {
+    const badges = document.querySelectorAll('nav a[href*="notifications"] span.bg-rose-500');
+    badges.forEach(badge => {
+        let count = parseInt(badge.textContent.trim(), 10) + delta;
+        if (count <= 0) badge.remove();
+        else badge.textContent = count;
+    });
+}
+
+function clearSidebarNotificationBadge() {
+    const badges = document.querySelectorAll('nav a[href*="notifications"] span.bg-rose-500');
+    badges.forEach(badge => badge.remove());
 }
 </script>
 {% endblock %}

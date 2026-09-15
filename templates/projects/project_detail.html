@@ -5,98 +5,129 @@
 {% block topbar_title %}Project{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<!-- Page header -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
     <div>
-        <p class="page-kicker">Project</p>
-        <h1>{{ project.title }}</h1>
-        <p class="page-subtitle">Created from lead <a href="{% url 'leads:lead-page-detail' project.lead.id %}">{{ project.lead.project_name }}</a></p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 mb-1">Project</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">{{ project.title }}</h1>
+        <p class="mt-1 text-sm text-slate-500">
+            Created from lead <a href="{% url 'leads:lead-page-detail' project.lead.id %}" class="text-brand-600 hover:text-brand-700 font-medium">{{ project.lead.project_name }}</a>
+        </p>
     </div>
-    <span class="badge badge-{{ project.status }}">{{ project.get_status_display }}</span>
+    <span class="badge badge-{{ project.status }} self-start sm:self-auto">{{ project.get_status_display }}</span>
 </div>
 
-<section class="card" style="margin-bottom: 24px;">
-    <div class="card-body">
-        <dl class="meta-grid">
-            <div>
-                <dt>Sale amount</dt>
-                {% if can_see_financials %}
-                <dd>Rs. {{ project.sale_amount|floatformat:2 }}</dd>
-                {% else %}
-                <dd class="muted" style="font-style: italic;">Restricted</dd>
-                {% endif %}
-            </div>
-            <div>
-                <dt>Created by</dt>
-                <dd>{{ project.created_by.email }} on {{ project.created_at|date:"M d, Y" }}</dd>
-            </div>
-        </dl>
-    </div>
+<!-- Meta card -->
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-5">
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Sale amount</dt>
+            {% if can_see_financials %}
+                <dd class="text-xl font-bold text-slate-800">Rs. {{ project.sale_amount|floatformat:2 }}</dd>
+            {% else %}
+                <dd class="text-sm text-slate-400 italic">Restricted</dd>
+            {% endif %}
+        </div>
+        <div>
+            <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Created by</dt>
+            <dd class="text-sm text-slate-700">{{ project.created_by.email }} <span class="text-slate-400">on {{ project.created_at|date:"M d, Y" }}</span></dd>
+        </div>
+    </dl>
 </section>
 
-<section class="card table-card" style="margin-bottom: 24px;">
-    <div class="card-header">
-        <h2>Assigned managers</h2>
+<!-- Assigned managers -->
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm mb-5">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <h2 class="text-sm font-semibold text-slate-800">Assigned managers</h2>
     </div>
-    <div class="table-wrap">
-        <table class="data-table">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
             <thead>
-                <tr><th>Manager</th><th>Assigned by</th><th>Assigned at</th></tr>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Manager</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Assigned by</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Assigned at</th>
+                </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-50">
                 {% for pm in project.project_managers.all %}
-                <tr>
-                    <td>{{ pm.manager.email }}</td>
-                    <td>{{ pm.assigned_by.email }}</td>
-                    <td>{{ pm.created_at|date:"M d, Y" }}</td>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-5 py-3.5 text-slate-700 font-medium">{{ pm.manager.email }}</td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden sm:table-cell">{{ pm.assigned_by.email }}</td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden sm:table-cell whitespace-nowrap">{{ pm.created_at|date:"M d, Y" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="3">No managers assigned yet.</td></tr>
+                <tr>
+                    <td colspan="3" class="px-5 py-8 text-center text-sm text-slate-400">No managers assigned yet.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
     {% if is_bd or is_super_admin %}
-    <div class="card-body">
-        <p class="page-kicker">Business Developer / Super Admin</p>
-        <form id="assign-manager-form" class="assign-row" action="#" onsubmit="return false;">
+    <div class="px-5 py-4 border-t border-slate-100">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Assign a technical manager</p>
+        <form id="assign-manager-form" class="flex flex-col sm:flex-row gap-3" action="#" onsubmit="return false;">
             {% csrf_token %}
-            <select id="manager_id" required>
-                <option value="">Select technical manager</option>
+            <select id="manager_id" required
+                    class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all">
+                <option value="">Select technical manager…</option>
                 {% for manager in technical_managers %}
                     <option value="{{ manager.id }}">{{ manager.display_name }} — {{ manager.email }}</option>
                 {% endfor %}
             </select>
-            <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+            <button type="submit"
+                    class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-sky-100 text-sky-800 hover:bg-sky-200 border border-sky-300 shadow-sm transition-all shrink-0">Assign</button>
         </form>
-        <div id="assign-manager-errors" class="alert alert-error" style="display:none; margin-top: 12px;"></div>
+        <div id="assign-manager-errors" class="hidden mt-3 px-4 py-3 rounded-xl text-sm bg-rose-50 text-rose-700 border border-rose-200"></div>
     </div>
     {% endif %}
 </section>
 
+<!-- Commission records -->
 {% if can_see_commissions %}
-<section class="card table-card" style="margin-bottom: 24px;">
-    <div class="card-header">
-        <h2>Commission records</h2>
-        {% if is_bd or is_tm or is_super_admin %}
-            <a href="{% url 'commissions:my-commissions-page' %}" class="btn btn-ghost btn-sm">My commissions</a>
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm mb-5">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <h2 class="text-sm font-semibold text-slate-800">Commission records</h2>
+        {% if not is_super_admin %}
+            {% if is_bd or is_tm %}
+            <a href="{% url 'commissions:my-commissions-page' %}"
+               class="text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors">My commissions →</a>
+            {% endif %}
         {% endif %}
     </div>
-    <div class="table-wrap">
-        <table class="data-table">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
             <thead>
-                <tr><th>User</th><th>Role</th><th>Sale amount</th><th>%</th><th>Commission</th></tr>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">User</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Role</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Sale amount</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">%</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Commission</th>
+                </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-50">
                 {% for rec in project.commission_records.all %}
-                <tr>
-                    <td>{{ rec.user.email }}</td>
-                    <td><span class="role-badge role-badge-{{ rec.role_name|role_slug }}">{{ rec.role_name }}</span></td>
-                    <td>Rs. {{ rec.sale_amount|floatformat:2 }}</td>
-                    <td>{{ rec.commission_percentage }}%</td>
-                    <td><strong>Rs. {{ rec.commission_amount|floatformat:2 }}</strong></td>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-5 py-3.5 text-slate-700">{{ rec.user.email }}</td>
+                    <td class="px-5 py-3.5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                            {% if rec.role_name|role_slug == 'business-developer' %}bg-emerald-100 text-emerald-700
+                            {% elif rec.role_name|role_slug == 'technical-manager' %}bg-blue-100 text-blue-700
+                            {% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ rec.role_name }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden sm:table-cell whitespace-nowrap">Rs. {{ rec.sale_amount|floatformat:2 }}</td>
+                    <td class="px-5 py-3.5 text-slate-500 hidden sm:table-cell">{{ rec.commission_percentage }}%</td>
+                    <td class="px-5 py-3.5 font-semibold text-slate-800 whitespace-nowrap">Rs. {{ rec.commission_amount|floatformat:2 }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5">No commission records yet.</td></tr>
+                <tr>
+                    <td colspan="5" class="px-5 py-8 text-center text-sm text-slate-400">No commission records yet.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -104,14 +135,22 @@
 </section>
 {% endif %}
 
-<section class="card">
-    <div class="card-header"><h2>Comments</h2></div>
-    <div class="card-body">
-        <div id="comments-list"><p class="muted">Loading comments...</p></div>
-        <form id="comment-form" class="comment-form" enctype="multipart/form-data">
-            <textarea id="comment-body" placeholder="Add a comment..." required></textarea>
-            <input type="file" id="comment-images" multiple accept="image/*">
-            <button type="submit" class="btn btn-primary btn-sm">Post comment</button>
+<!-- Comments -->
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="text-sm font-semibold text-slate-800">Comments</h2>
+    </div>
+    <div class="p-5 space-y-4">
+        <div id="comments-list"><p class="text-sm text-slate-400">Loading comments…</p></div>
+        <form id="comment-form" class="space-y-3" enctype="multipart/form-data">
+            <textarea id="comment-body" placeholder="Add a comment…" required rows="3"
+                      class="block w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent resize-none transition-all"></textarea>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                <input type="file" id="comment-images" multiple accept="image/*"
+                       class="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition-all">
+                <button type="submit"
+                        class="sm:ml-auto px-4 py-2 rounded-xl text-sm font-semibold bg-sky-100 text-sky-800 hover:bg-sky-200 border border-sky-300 shadow-sm transition-all shrink-0">Post comment</button>
+            </div>
         </form>
     </div>
 </section>
@@ -131,7 +170,7 @@ if (assignForm) {
             .then(() => location.reload())
             .catch((err) => {
                 const box = document.getElementById("assign-manager-errors");
-                box.style.display = "block";
+                box.classList.remove("hidden");
                 box.textContent = formatApiError(err);
             });
     });

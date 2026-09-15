@@ -154,6 +154,59 @@ class PhaseEngineerHistoryAdmin(admin.ModelAdmin):
         "action",
     ]
 
+    search_fields = [
+        "phase__lead__project_name",
+        "engineer__email",
+        "performed_by__email",
+    ]
+
     readonly_fields = [
+        "phase",
+        "engineer",
+        "action",
+        "comment",
+        "performed_by",
         "action_at",
     ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(PhaseManagerHistory)
+class PhaseManagerHistoryAdmin(admin.ModelAdmin):
+    list_display = [
+        "phase",
+        "manager",
+        "action",
+        "performed_by",
+        "action_at",
+    ]
+
+    list_filter = [
+        "action",
+    ]
+
+    search_fields = [
+        "phase__lead__project_name",
+        "manager__email",
+        "performed_by__email",
+    ]
+
+    readonly_fields = [
+        "phase",
+        "manager",
+        "action",
+        "comment",
+        "performed_by",
+        "action_at",
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
