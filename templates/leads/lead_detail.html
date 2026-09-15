@@ -1,592 +1,587 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block title %}{{ lead.project_name }}{% endblock %}
+{% block topbar_title %}Lead Details{% endblock %}
 
 {% block content %}
+<a href="{% url 'leads:lead-page-list' %}" class="back-link">
+    ← Back to Leads
+</a>
 
-<h1>{{ lead.project_name }}</h1>
-
-<p>
-    <strong>Client:</strong>
-    {{ lead.client_name }} — {{ lead.client_email }} — {{ lead.client_contact }}
-</p>
-
-<p>
-    <strong>Platform:</strong>
-    {{ lead.platform_used }}
-</p>
-
-<p>
-    <strong>Status:</strong>
-    <span class="badge badge-{{ lead.status }}">
-        {{ lead.get_status_display }}
-    </span>
-</p>
-
-<p>
-    <strong>Created by:</strong>
-    {{ lead.created_by.email }}
-    on {{ lead.created_at|date:"M d, Y" }}
-</p>
-
-{% if lead.status == "sale" %}
-<p>
-    <strong>Sale decided:</strong>
-    {{ lead.sale_decided_at|date:"M d, Y" }} by {{ lead.sale_decided_by.email }}
-</p>
-    {% if lead.project %}
-    <p>
-        <a href="{% url 'projects:project-page-detail' lead.project.id %}">View Project →</a>
-    </p>
-    {% endif %}
-{% endif %}
-
-<h2>Phases</h2>
-
-{% if lead.status == "open" %}
-<details class="add-phase-details">
-
-    <summary>+ Add Phase</summary>
-
-    <form id="phase-form" class="stacked-form">
-
-        <div class="form-group">
-            <label>Type</label>
-
-            <select id="phase_type" required>
-                <option value="test_project">
-                    Test Project
-                </option>
-
-                <option value="interview">
-                    Interview
-                </option>
-            </select>
+<div class="page-header" style="margin-bottom: 20px;">
+    <div>
+        <p class="page-kicker">Lead #{{ lead.id }}</p>
+        <h1 style="margin: 4px 0 6px;">{{ lead.project_name }}</h1>
+        <div class="meta-tags">
+            <span class="badge badge-{{ lead.status }}">{{ lead.get_status_display }}</span>
+            <span class="meta-tag">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: -2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"></path></svg>
+                {{ lead.platform_used }}
+            </span>
+            <span class="meta-tag">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: -2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Created {{ lead.created_at|date:"M d, Y" }}
+            </span>
         </div>
-
-        <div class="form-group">
-            <label>Start Date</label>
-
-            <input
-                type="date"
-                id="phase_start_date"
-                required
-            >
-        </div>
-
-        <div class="form-group">
-            <label>Due Date</label>
-
-            <input
-                type="date"
-                id="phase_due_date"
-                required
-            >
-        </div>
-
-        <div
-            id="phase-form-errors"
-            class="alert alert-error"
-            style="display:none;"
-        ></div>
-
-        <button type="submit">
-            Add Phase
-        </button>
-
-    </form>
-
-</details>
-{% endif %}
-
-
-<table class="data-table">
-
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Type</th>
-            <th>Manager</th>
-            <th>Status</th>
-            <th>Start</th>
-            <th>Due</th>
-            <th>Completed</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-
-    <tbody id="phases-tbody">
-
-        {% for phase in lead.phases.all %}
-
-        <tr id="phase-row-{{ phase.id }}">
-
-            <td>
-                {{ phase.order }}
-            </td>
-
-            <td>
-                {{ phase.get_type_display }}
-            </td>
-
-            <td>
-                {{ phase.current_manager.email|default:"—" }}
-            </td>
-
-            <td class="phase-status">
-
-                <span class="badge badge-{{ phase.status }}">
-                    {{ phase.get_status_display }}
-                </span>
-
-            </td>
-
-            <td>
-                {{ phase.start_date }}
-            </td>
-
-            <td>
-                {{ phase.due_date }}
-            </td>
-
-            <td>
-                {{ phase.completed_at|date:"M d, Y"|default:"—" }}
-            </td>
-
-            <td>
-
-                {% if phase.status == "pending_acceptance" and phase.current_manager_id == user.id %}
-
-                    <button onclick="acceptPhase({{ phase.id }})">
-                        Accept
-                    </button>
-
-                    <button onclick="declinePhase({{ phase.id }})">
-                        Decline
-                    </button>
-
-                {% elif phase.status == "accepted" or phase.status == "in_progress" %}
-
-                    <button onclick="completePhase({{ phase.id }})">
-                        Mark Complete
-                    </button>
-
-                {% endif %}
-
-            </td>
-
-        </tr>
-
-        {% empty %}
-
-        <tr>
-            <td colspan="8">
-                No phases added yet.
-            </td>
-        </tr>
-
-        {% endfor %}
-
-    </tbody>
-
-</table>
-
-
-{% if lead.status == "open" and lead.all_phases_completed %}
-<div class="decision-box">
-    <h2>Ready to Decide</h2>
-    <p>All phases are completed. Mark this lead as a sale or no-sale.</p>
-
-    <form id="mark-sale-form" class="stacked-form">
-        <div class="form-group">
-            <label>Sale Amount (Rs.)</label>
-            <input type="number" id="sale_amount" step="0.01" min="0.01" required>
-        </div>
-        <div id="sale-form-errors" class="alert alert-error" style="display:none;"></div>
-        <button type="submit">Mark as Sale</button>
-    </form>
-
-    <button onclick="markNoSale()" class="btn-secondary">Mark as No Sale</button>
-</div>
-{% endif %}
-
-
-<h2>Comments</h2>
-
-<div id="comments-list">
-    <p>Loading comments...</p>
+    </div>
 </div>
 
-
-<form id="comment-form" enctype="multipart/form-data">
-
-    <textarea
-        id="comment-body"
-        placeholder="Add a comment..."
-        required
-    ></textarea>
-
-    <input
-        type="file"
-        id="comment-images"
-        multiple
-        accept="image/*"
-    >
-
-    <button type="submit">
-        Post Comment
-    </button>
-
-</form>
-
-{% endblock %}
-
-
-{% block extra_js %}
-
-<script>
-
-const LEAD_ID = {{ lead.id }};
-
-
-function acceptPhase(phaseId) {
-
-    apiPost(`/api/phases/${phaseId}/accept/`, {})
-
-        .then(() => location.reload())
-
-        .catch(err =>
-            alert(
-                err.data.detail ||
-                "Failed to accept phase."
-            )
-        );
-}
-
-
-function declinePhase(phaseId) {
-
-    const comment = prompt(
-        "Reason for declining (optional):",
-        ""
-    );
-
-    if (comment === null) return;
-
-    apiPost(
-        `/api/phases/${phaseId}/decline/`,
-        { comment }
-    )
-
-        .then(() => location.reload())
-
-        .catch(err =>
-            alert(
-                err.data.detail ||
-                "Failed to decline phase."
-            )
-        );
-}
-
-
-function completePhase(phaseId) {
-
-    if (!confirm("Mark this phase as complete?")) {
-        return;
-    }
-
-    apiPost(
-        `/api/phases/${phaseId}/complete/`,
-        {}
-    )
-
-        .then(() => location.reload())
-
-        .catch(err =>
-            alert(
-                err.data.detail ||
-                "Failed to complete phase."
-            )
-        );
-}
-
-
-/*
- * Add Phase
- */
-
-const phaseForm =
-    document.getElementById('phase-form');
-
-if (phaseForm) {
-
-    phaseForm.addEventListener(
-        'submit',
-        function (e) {
-
-            e.preventDefault();
-
-            const payload = {
-
-                type:
-                    document.getElementById(
-                        'phase_type'
-                    ).value,
-
-                start_date:
-                    document.getElementById(
-                        'phase_start_date'
-                    ).value,
-
-                due_date:
-                    document.getElementById(
-                        'phase_due_date'
-                    ).value,
-            };
-
-
-            apiPost(
-                `/api/leads/${LEAD_ID}/phases/create/`,
-                payload
-            )
-
-                .then(() => location.reload())
-
-                .catch(err => {
-
-                    const box =
-                        document.getElementById(
-                            'phase-form-errors'
-                        );
-
-                    box.style.display = 'block';
-
-                    box.textContent =
-                        JSON.stringify(err.data);
-
-                });
-
-        }
-    );
-
-}
-
-
-/*
- * Mark Sale / No Sale
- */
-
-const markSaleForm =
-    document.getElementById('mark-sale-form');
-
-if (markSaleForm) {
-
-    markSaleForm.addEventListener(
-        'submit',
-        function (e) {
-
-            e.preventDefault();
-
-            const sale_amount =
-                document.getElementById(
-                    'sale_amount'
-                ).value;
-
-            apiPost(
-                `/api/leads/${LEAD_ID}/mark-sale/`,
-                { sale_amount }
-            )
-
-                .then(data => {
-
-                    window.location.href =
-                        `/projects/${data.project_id}/`;
-
-                })
-
-                .catch(err => {
-
-                    const box =
-                        document.getElementById(
-                            'sale-form-errors'
-                        );
-
-                    box.style.display = 'block';
-
-                    box.textContent =
-                        JSON.stringify(err.data);
-
-                });
-
-        }
-    );
-
-}
-
-
-function markNoSale() {
-
-    if (!confirm(
-        "Mark this lead as No Sale? This cannot be undone."
-    )) {
-        return;
-    }
-
-    apiPost(
-        `/api/leads/${LEAD_ID}/mark-no-sale/`,
-        {}
-    )
-
-        .then(() => location.reload())
-
-        .catch(err =>
-            alert(
-                err.data.detail ||
-                "Failed to mark as no sale."
-            )
-        );
-}
-
-
-function loadComments() {
-
-    fetch(
-        `/api/comments/?model_name=lead&object_id=${LEAD_ID}`
-    )
-
-        .then(res => res.json())
-
-        .then(data => {
-
-            const container =
-                document.getElementById(
-                    'comments-list'
-                );
-
-            const results =
-                data.results || data;
-
-            if (results.length === 0) {
-
-                container.innerHTML =
-                    "<p>No comments yet.</p>";
-
-                return;
-            }
-
-            container.innerHTML =
-                results.map(c => `
-
-                    <div class="comment">
-
-                        <strong>
-                            ${c.user.email}
-                        </strong>
-
-                        —
-                        ${new Date(
-                            c.created_at
-                        ).toLocaleString()}
-
-                        <p>
-                            ${c.body}
+<div class="lead-layout">
+    <!-- LEFT MAIN COLUMN: Workflow Phases -->
+    <div class="lead-main">
+        {% if lead.status == "open" and is_lead_creator or lead.status == "open" and is_superadmin %}
+        <section class="card" style="margin-bottom: 20px;">
+            <div class="card-header" style="padding: 14px 18px; border-bottom: 1px solid var(--border);">
+                <h2 style="font-size: 15px; margin: 0;">Add Deliverable Phase</h2>
+            </div>
+            <div class="card-body" style="padding: 16px 18px;">
+                <p class="muted" style="margin: 0 0 14px; font-size: 13px;">
+                    Define an interview or test project phase and assign an initial Technical Manager.
+                </p>
+                <form id="phase-form" class="stacked-form" action="#" onsubmit="return false;" style="max-width: 100%;">
+                    {% csrf_token %}
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                        <div class="form-group">
+                            <label for="phase_type">Phase Type</label>
+                            <select id="phase_type" required>
+                                <option value="test_project">Test Project</option>
+                                <option value="interview">Interview</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="phase_start_date">Start Date</label>
+                            <input type="date" id="phase_start_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phase_due_date">Due Date</label>
+                            <input type="date" id="phase_due_date" required>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 8px;">
+                        <label for="phase_manager">Technical Manager</label>
+                        <select id="phase_manager">
+                            <option value="">Select Technical Manager (or assign later)</option>
+                            {% for manager in technical_managers %}
+                                <option value="{{ manager.id }}">{{ manager.display_name }} ({{ manager.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="phase-form-errors" class="alert alert-error" style="display:none; margin-top: 10px;"></div>
+                    <div style="margin-top: 10px;">
+                        <button type="submit" class="btn btn-primary btn-sm">Add Phase</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        {% endif %}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h2 style="font-size: 17px; margin: 0; font-weight: 700;">Workflow Deliverables</h2>
+            <span class="muted" style="font-size: 13px;">{{ lead.phases.count }} phase{% if lead.phases.count != 1 %}s{% endif %}</span>
+        </div>
+
+        <div class="phase-list">
+            {% for phase in lead.phases.all %}
+            <article class="card phase-card" id="phase-{{ phase.id }}">
+                <div class="phase-card-head">
+                    <div>
+                        <p class="page-kicker">Phase {{ phase.order }}</p>
+                        <h3 style="margin: 2px 0 4px; font-size: 16px;">{{ phase.get_type_display }}</h3>
+                        <p class="muted" style="margin: 0; font-size: 13px;">
+                            {{ phase.start_date|date:"M d, Y" }} → {{ phase.due_date|date:"M d, Y" }}
+                            {% if phase.completed_at %}
+                                · <span style="color: #059669; font-weight: 600;">Completed {{ phase.completed_at|date:"M d, Y" }}</span>
+                            {% endif %}
                         </p>
+                    </div>
+                    <span class="badge badge-{{ phase.status }}">{{ phase.get_status_display }}</span>
+                </div>
 
-                        ${c.attachments
-                            .map(a => `
-                                <img
-                                    src="${a.image}"
-                                    class="comment-img"
-                                >
-                            `)
-                            .join('')
-                        }
+                <div class="phase-card-body">
+                    <div class="phase-subgrid">
+                        <!-- Left Subcard: Technical Manager -->
+                        <div class="phase-subcard">
+                            <div>
+                                <div class="phase-subcard-title">
+                                    <span>Technical Manager</span>
+                                </div>
+                                
+                                {% if phase.current_manager %}
+                                    <div class="person-row" style="border-bottom: none; padding: 4px 0;">
+                                        <div>
+                                            <strong style="font-size: 14px;">{{ phase.current_manager.display_name }}</strong>
+                                            <div class="muted" style="font-size: 12px;">{{ phase.current_manager.email }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if phase.status == "accepted" or phase.status == "in_progress" %}
+                                        <!-- Manager has accepted. Assignment is locked. No re-assignment form! -->
+                                        <div style="margin-top: 8px;">
+                                            <span class="badge badge-accepted" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                Accepted & Assigned
+                                            </span>
+                                        </div>
+                                    {% elif phase.status == "completed" %}
+                                        <div style="margin-top: 8px;">
+                                            <span class="badge badge-completed">Phase Completed</span>
+                                        </div>
+                                    {% elif phase.status == "pending_acceptance" %}
+                                        <div style="margin-top: 8px;">
+                                            <span class="badge badge-pending_acceptance">⏳ Awaiting Manager Acceptance</span>
+                                        </div>
 
+                                        {% if phase.current_manager_id == user.id %}
+                                        <div class="inline-actions" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);">
+                                            <button type="button" class="btn btn-success btn-sm" onclick="acceptPhase({{ phase.id }})">Accept</button>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="declinePhase({{ phase.id }})">Decline</button>
+                                        </div>
+                                        {% endif %}
+
+                                        {% if lead.status == "open" and is_bd or lead.status == "open" and is_super_admin %}
+                                        <div style="margin-top: 10px;">
+                                            <details>
+                                                <summary style="font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline;">Change assigned manager</summary>
+                                                <form class="assign-row" style="margin-top: 6px; display: flex; gap: 8px; align-items: center; width: 100%;" onsubmit="return assignManager(event, {{ phase.id }})">
+                                                    <select required style="flex: 1 1 0; min-width: 0; width: 100%; font-size: 12px; padding: 6px 8px; text-overflow: ellipsis; overflow: hidden;">
+                                                        <option value="">Choose different manager</option>
+                                                        {% for manager in technical_managers %}
+                                                            {% if manager.id != phase.current_manager_id %}
+                                                                <option value="{{ manager.id }}">{{ manager.display_name }} ({{ manager.email }})</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                    <button type="submit" class="btn btn-secondary btn-sm" style="flex-shrink: 0; white-space: nowrap;">Change</button>
+                                                </form>
+                                            </details>
+                                        </div>
+                                        {% endif %}
+                                    {% endif %}
+
+                                {% else %}
+                                    <!-- No manager assigned yet, or previous manager declined -->
+                                    <p class="muted" style="font-size: 13px; margin: 4px 0 8px;">No manager currently assigned.</p>
+                                    {% if phase.status == "pending_reassignment" %}
+                                        <div style="margin-bottom: 8px;">
+                                            <span class="badge badge-declined" style="font-size: 11px;">Manager declined · Reassignment needed</span>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if lead.status == "open" and is_bd or lead.status == "open" and is_super_admin %}
+                                    <form class="assign-row" style="margin-top: 8px; display: flex; gap: 8px; align-items: center; width: 100%;" onsubmit="return assignManager(event, {{ phase.id }})">
+                                        <select required style="flex: 1 1 0; min-width: 0; width: 100%; font-size: 12px; padding: 6px 8px; text-overflow: ellipsis; overflow: hidden;">
+                                            <option value="">Assign technical manager</option>
+                                            {% for manager in technical_managers %}
+                                                <option value="{{ manager.id }}">{{ manager.display_name }} — {{ manager.email }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-secondary btn-sm" style="flex-shrink: 0; white-space: nowrap;">Assign</button>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Right Subcard: Assigned Engineers -->
+                        <div class="phase-subcard">
+                            <div>
+                                <div class="phase-subcard-title">
+                                    <span>Assigned Engineers</span>
+                                    <span class="muted" style="font-weight: 500; text-transform: none;">{{ phase.phase_engineers.count }} total</span>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for assignment in phase.phase_engineers.all %}
+                                    <div class="person-row" style="background: #fff; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;">
+                                        <div>
+                                            <strong style="font-size: 13px;">{{ assignment.engineer.display_name }}</strong>
+                                            <div class="muted" style="font-size: 11px;">{{ assignment.engineer.email }}</div>
+                                        </div>
+                                        <div class="inline-actions">
+                                            <span class="badge badge-{{ assignment.status }}" style="font-size: 11px;">{{ assignment.get_status_display }}</span>
+                                            {% if assignment.engineer_id == user.id and assignment.status == "pending" %}
+                                                <button type="button" class="btn btn-success btn-sm" onclick="acceptEngineer({{ assignment.id }})">Accept</button>
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="declineEngineer({{ assignment.id }})">Decline</button>
+                                            {% elif assignment.engineer_id == user.id and assignment.status == "accepted" %}
+                                                <button type="button" class="btn btn-primary btn-sm" onclick="markEngineerDone({{ assignment.id }})">Done</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <p class="muted" style="font-size: 13px; margin: 4px 0 8px;">No engineers assigned to this phase yet.</p>
+                                    {% endfor %}
+                                </div>
+
+                                {% if phase.status == "accepted" or phase.status == "in_progress" %}
+                                    {% if is_tm and phase.current_manager_id == user.id or is_super_admin %}
+                                    <form class="assign-row" style="margin-top: 12px; display: flex; gap: 8px; align-items: center; width: 100%;" onsubmit="return addEngineer(event, {{ phase.id }})">
+                                        <select required style="flex: 1 1 0; min-width: 0; width: 100%; font-size: 12px; padding: 6px 8px; text-overflow: ellipsis; overflow: hidden;">
+                                            <option value="">Select engineer to add</option>
+                                            {% for engineer in engineers %}
+                                                <option value="{{ engineer.id }}">{{ engineer.display_name }} — {{ engineer.email }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-secondary btn-sm" style="flex-shrink: 0; white-space: nowrap;">Add</button>
+                                    </form>
+                                    {% endif %}
+                                {% elif phase.status == "pending_acceptance" %}
+                                    <p class="muted" style="font-size: 12px; margin-top: 10px;">
+                                        Engineers can be assigned once the manager accepts the phase.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
 
-                `).join('');
+                    <!-- Phase Bottom Bar: Actions & Timestamps -->
+                    <div class="phase-footer-bar">
+                        <div>
+                            {% if phase.status == "completed" %}
+                                <span style="color: #059669; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Phase completed {% if phase.completed_at %}on {{ phase.completed_at|date:"M d, Y H:i" }}{% endif %}{% if phase.completed_by %} by {{ phase.completed_by.display_name }}{% endif %}
+                                </span>
+                            {% else %}
+                                <span class="muted" style="font-size: 13px;">Phase State: <strong>{{ phase.get_status_display }}</strong></span>
+                            {% endif %}
+                        </div>
 
-        });
+                        {% if phase.status == "accepted" or phase.status == "in_progress" %}
+                            {% if is_bd or is_super_admin or is_tm and phase.current_manager_id == user.id %}
+                                <button type="button" class="btn btn-primary btn-sm" onclick="completePhase({{ phase.id }})">
+                                    Mark phase complete
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <section class="card">
+                <div class="empty-state">
+                    <p class="empty-title">No phases added yet</p>
+                    <p class="empty-text">
+                        {% if is_bd or is_super_admin %}
+                            Use the form above to add the first interview or test project phase.
+                        {% else %}
+                            Awaiting a Business Developer to add phases and assign deliverables.
+                        {% endif %}
+                    </p>
+                </div>
+            </section>
+            {% endfor %}
+        </div>
+    </div>
 
+    <!-- RIGHT SIDEBAR: Deal Decision, Lead Metadata & Comments -->
+    <div class="lead-sidebar">
+        <!-- 1. DEAL OUTCOME / DECISION CARD -->
+        {% if lead.status == "open" and lead.all_phases_completed %}
+        <div class="decision-card is-ready">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #10b981; color: #fff; font-size: 13px; font-weight: 700;">✓</span>
+                <h3 style="margin: 0; font-size: 15px; color: #065f46;">Ready to Decide Deal</h3>
+            </div>
+            <p class="muted" style="font-size: 13px; margin: 0 0 14px; color: #047857;">
+                All deliverable phases are marked complete! Record the final deal outcome below.
+            </p>
+            {% if is_lead_creator or is_superadmin %}
+            <form id="mark-sale-form" class="stacked-form" action="#" onsubmit="return false;" style="max-width: 100%;">
+                {% csrf_token %}
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="sale_amount" style="font-weight: 600; font-size: 13px;">Sale Amount (Rs.)</label>
+                    <input type="number" id="sale_amount" step="0.01" min="0.01" placeholder="e.g. 150000.00" required style="font-size: 15px; font-weight: 600;">
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="sale_manager_id" style="font-weight: 600; font-size: 13px;">Assign Project Manager</label>
+                    <select id="sale_manager_id" required>
+                        <option value="">— Select Technical Manager —</option>
+                        {% for tm in technical_managers %}
+                        <option value="{{ tm.id }}">{{ tm.display_name|default:tm.email }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="sale-form-errors" class="alert alert-error" style="display:none; margin-bottom: 10px;"></div>
+                <div class="inline-actions" style="display: flex; gap: 8px;">
+                    <button type="submit" class="btn btn-success" style="flex: 1; justify-content: center;">Mark as Sale</button>
+                    <button type="button" class="btn btn-danger" style="flex: 1; justify-content: center;" onclick="markNoSale()">Mark as No Sale</button>
+                </div>
+            </form>
+            {% else %}
+            <p class="muted" style="font-size: 12px; margin: 0;">
+                Waiting for Business Developer or Super Admin to record the sale outcome.
+            </p>
+            {% endif %}
+        </div>
+        {% elif lead.status == "open" %}
+        <div class="decision-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin: 0; font-size: 14px; font-weight: 700;">Workflow In Progress</h3>
+                <span class="badge badge-open">Open</span>
+            </div>
+            <p class="muted" style="font-size: 13px; margin: 0;">
+                Complete all phase deliverables before closing the lead. Once all phases are marked complete, the decision controls will unlock here.
+            </p>
+        </div>
+        {% elif lead.status == "sale" %}
+        <div class="decision-card is-ready">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0; font-size: 15px; color: #065f46; display: flex; align-items: center; gap: 6px;">
+                    <span>★</span> Deal Closed — Won
+                </h3>
+                <span class="badge badge-sale">Sale</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Sale Amount:</span>
+                <span class="val" style="font-size: 15px; color: #059669;">Rs. {{ lead.sale_amount|default:"—" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Decided On:</span>
+                <span class="val">{{ lead.sale_decided_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Decided By:</span>
+                <span class="val">{{ lead.sale_decided_by.display_name|default:lead.sale_decided_by.email }}</span>
+            </div>
+            {% if lead.project %}
+            <div style="margin-top: 14px; text-align: right;">
+                <a href="{% url 'projects:project-page-detail' lead.project.id %}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                    View Project & Commissions →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% elif lead.status == "no_sale" %}
+        <div class="decision-card" style="border-left: 4px solid var(--red);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin: 0; font-size: 15px; color: var(--red);">Deal Closed — Lost</h3>
+                <span class="badge badge-no_sale">No Sale</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Decided On:</span>
+                <span class="val">{{ lead.sale_decided_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Decided By:</span>
+                <span class="val">{{ lead.sale_decided_by.display_name|default:lead.sale_decided_by.email }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 2. LEAD & CLIENT DETAILS CARD -->
+        <section class="card" style="margin-bottom: 20px;">
+            <div class="card-header" style="padding: 14px 18px; border-bottom: 1px solid var(--border);">
+                <h3 style="font-size: 14px; margin: 0; font-weight: 700;">Lead Information</h3>
+            </div>
+            <div class="card-body" style="padding: 16px 18px;">
+                <div class="info-subgroup">
+                    <h4>Client Contact</h4>
+                    <div class="info-row">
+                        <span class="label">Client Name:</span>
+                        <span class="val">{{ lead.client_name }}</span>
+                    </div>
+                    {% if can_see_full_details %}
+                    <div class="info-row">
+                        <span class="label">Email:</span>
+                        <span class="val">
+                            {% if lead.client_email %}
+                                <a href="mailto:{{ lead.client_email }}" style="color: var(--primary); text-decoration: none;">{{ lead.client_email }}</a>
+                            {% else %}—{% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Contact / Phone:</span>
+                        <span class="val">
+                            {% if lead.client_contact %}
+                                <a href="tel:{{ lead.client_contact }}" style="color: var(--primary); text-decoration: none;">{{ lead.client_contact }}</a>
+                            {% else %}—{% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Address:</span>
+                        <span class="val">{{ lead.client_address|default:"—" }}</span>
+                    </div>
+                    {% else %}
+                    <p class="muted" style="font-size: 12px; margin: 6px 0 0; font-style: italic;">Contact details are restricted to authorized personnel.</p>
+                    {% endif %}
+                </div>
+
+                <div class="info-subgroup">
+                    <h4>Deal Specs</h4>
+                    <div class="info-row">
+                        <span class="label">Platform:</span>
+                        <span class="val">{{ lead.platform_used }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Created By:</span>
+                        <span class="val">{{ lead.created_by.display_name|default:lead.created_by.email }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Created Date:</span>
+                        <span class="val">{{ lead.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+
+                {% if can_see_full_details and lead.comments_note %}
+                <div class="info-subgroup" style="margin-bottom: 0;">
+                    <h4>Internal Notes</h4>
+                    <div class="note-box">
+                        {{ lead.comments_note }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- 3. COMMENTS & DISCUSSION CARD -->
+        <section class="card">
+            <div class="card-header" style="padding: 14px 18px; border-bottom: 1px solid var(--border);">
+                <h3 style="font-size: 14px; margin: 0; font-weight: 700;">Discussion & Notes</h3>
+            </div>
+            <div class="card-body" style="padding: 16px 18px;">
+                <div id="comments-list"><p class="muted" style="font-size: 13px;">Loading comments...</p></div>
+                <form id="comment-form" class="comment-form" enctype="multipart/form-data" action="#" onsubmit="return false;" style="margin-top: 14px;">
+                    {% csrf_token %}
+                    <textarea id="comment-body" placeholder="Write a note, feedback, or update..." required style="font-size: 13px;"></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <input type="file" id="comment-images" multiple accept="image/*" style="font-size: 12px; max-width: 190px;">
+                        <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const LEAD_ID = {{ lead.id }};
+try {
+    if (typeof initComments === "function") {
+        initComments("lead", LEAD_ID);
+    }
+} catch (e) {
+    console.error("Comments initialization error:", e);
 }
 
+function acceptPhase(phaseId) {
+    apiPost(`/api/phases/${phaseId}/accept/`, {})
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+}
 
-document
-    .getElementById('comment-form')
-    .addEventListener(
-        'submit',
-        function (e) {
+function declinePhase(phaseId) {
+    const comment = prompt("Reason for declining (optional):", "");
+    if (comment === null) return;
+    apiPost(`/api/phases/${phaseId}/decline/`, { comment })
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+}
 
-            e.preventDefault();
+function completePhase(phaseId) {
+    if (!confirm("Mark this phase as complete?")) return;
+    apiPost(`/api/phases/${phaseId}/complete/`, {})
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+}
 
-            const body =
-                document.getElementById(
-                    'comment-body'
-                ).value;
+function assignManager(event, phaseId) {
+    event.preventDefault();
+    const select = event.target.querySelector("select");
+    const managerId = parseInt(select.value, 10);
+    if (!managerId) return false;
+    apiPost(`/api/phases/${phaseId}/assign-manager/`, { manager_id: managerId })
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+    return false;
+}
 
-            const files =
-                document.getElementById(
-                    'comment-images'
-                ).files;
+function addEngineer(event, phaseId) {
+    event.preventDefault();
+    const select = event.target.querySelector("select");
+    const engineerId = parseInt(select.value, 10);
+    if (!engineerId) return false;
+    apiPost(`/api/phases/${phaseId}/add-engineer/`, { engineer_id: engineerId })
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+    return false;
+}
 
-            const formData =
-                new FormData();
+function acceptEngineer(assignmentId) {
+    apiPost(`/api/phase-engineers/${assignmentId}/accept/`, {})
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+}
 
-            formData.append(
-                'model_name',
-                'lead'
-            );
+function declineEngineer(assignmentId) {
+    const comment = prompt("Reason for declining (optional):", "");
+    if (comment === null) return;
+    apiPost(`/api/phase-engineers/${assignmentId}/decline/`, { comment })
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+}
 
-            formData.append(
-                'object_id',
-                LEAD_ID
-            );
+function markEngineerDone(assignmentId) {
+    if (!confirm("Mark this assignment as done?")) return;
+    apiPost(`/api/phase-engineers/${assignmentId}/mark-done/`, {})
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+}
 
-            formData.append(
-                'body',
-                body
-            );
-
-            for (const file of files) {
-
-                formData.append(
-                    'images',
-                    file
-                );
-
-            }
-
-            apiPost(
-                '/api/comments/create/',
-                formData,
-                true
-            )
-
-                .then(() => {
-
-                    document
-                        .getElementById(
-                            'comment-form'
-                        )
-                        .reset();
-
-                    loadComments();
-
-                })
-
-                .catch(err =>
-                    alert(
-                        "Failed to post comment."
-                    )
-                );
-
+const phaseForm = document.getElementById("phase-form");
+if (phaseForm) {
+    phaseForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const managerVal = document.getElementById("phase_manager") ? document.getElementById("phase_manager").value : "";
+        const payload = {
+            type: document.getElementById("phase_type").value,
+            start_date: document.getElementById("phase_start_date").value,
+            due_date: document.getElementById("phase_due_date").value,
+        };
+        if (managerVal) {
+            payload.manager_id = parseInt(managerVal, 10);
         }
-    );
+        apiPost(`/api/leads/${LEAD_ID}/phases/create/`, payload)
+            .then(() => location.reload())
+            .catch((err) => {
+                const box = document.getElementById("phase-form-errors");
+                box.style.display = "block";
+                box.textContent = formatApiError(err);
+            });
+    });
+}
 
+const markSaleForm = document.getElementById("mark-sale-form");
+if (markSaleForm) {
+    markSaleForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const managerIdEl = document.getElementById("sale_manager_id");
+        const managerId = managerIdEl ? parseInt(managerIdEl.value, 10) : null;
+        if (!managerId) {
+            const box = document.getElementById("sale-form-errors");
+            box.style.display = "block";
+            box.textContent = "Please select a Technical Manager for this project.";
+            return;
+        }
+        apiPost(`/api/leads/${LEAD_ID}/mark-sale/`, {
+            sale_amount: document.getElementById("sale_amount").value,
+            manager_id: managerId,
+        })
+            .then((data) => { window.location.href = `/projects/${data.project_id}/`; })
+            .catch((err) => {
+                const box = document.getElementById("sale-form-errors");
+                box.style.display = "block";
+                box.textContent = formatApiError(err);
+            });
+    });
+}
 
-loadComments();
-
+function markNoSale() {
+    if (!confirm("Mark this lead as No Sale? This cannot be undone.")) return;
+    apiPost(`/api/leads/${LEAD_ID}/mark-no-sale/`, {})
+        .then(() => location.reload())
+        .catch((err) => alert(formatApiError(err)));
+}
 </script>
-
 {% endblock %}

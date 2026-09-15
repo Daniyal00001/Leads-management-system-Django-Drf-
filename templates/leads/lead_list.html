@@ -1,71 +1,89 @@
 {% extends "base.html" %}
-{% load role_tags %}
+
 {% block title %}Leads{% endblock %}
+{% block topbar_title %}Leads{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h1>Leads</h1>
-
-    {% if user|has_role:"Business Developer" %}
-        <a href="{% url 'leads:lead-page-create' %}" class="btn-primary">
-            + New Lead
-        </a>
+    <div>
+        <p class="page-kicker">Pipeline</p>
+        <h1>Leads</h1>
+        <p class="page-subtitle">
+            {% if is_bd or is_super_admin %}
+                Create leads, add phases, assign technical managers, and close sales.
+            {% elif is_tm %}
+                Review assigned phases, add engineers, and complete work.
+            {% elif is_engineer %}
+                Open a lead to accept assigned phase work and mark it done.
+            {% else %}
+                Browse the sales pipeline.
+            {% endif %}
+        </p>
+    </div>
+    {% if is_bd or is_super_admin %}
+        <a href="{% url 'leads:lead-page-create' %}" class="btn btn-primary">+ New Lead</a>
     {% endif %}
 </div>
 
-<table class="data-table">
-    <thead>
-        <tr>
-            <th>Project</th>
-            <th>Client</th>
-            <th>Status</th>
-            <th>Phases</th>
-            <th>Created By</th>
-            <th>Created</th>
-        </tr>
-    </thead>
+<div class="filter-bar">
+    <a class="filter-chip {% if not status_filter %}is-active{% endif %}" href="{% url 'leads:lead-page-list' %}">All</a>
+    <a class="filter-chip {% if status_filter == 'open' %}is-active{% endif %}" href="?status=open{% if query %}&q={{ query }}{% endif %}">Open</a>
+    <a class="filter-chip {% if status_filter == 'sale' %}is-active{% endif %}" href="?status=sale{% if query %}&q={{ query }}{% endif %}">Sale</a>
+    <a class="filter-chip {% if status_filter == 'no_sale' %}is-active{% endif %}" href="?status=no_sale{% if query %}&q={{ query }}{% endif %}">No sale</a>
+    <form class="search-form" method="get">
+        {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+        <input type="search" name="q" value="{{ query }}" placeholder="Search project or client">
+        <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+    </form>
+</div>
 
-    <tbody>
-        {% for lead in page_obj %}
-        <tr>
-            <td>
-                <a href="{% url 'leads:lead-page-detail' lead.pk %}">
-                    {{ lead.project_name }}
-                </a>
-            </td>
-            <td>{{ lead.client_name }}</td>
-            <td>
-                <span class="badge badge-{{ lead.status }}">
-                    {{ lead.get_status_display }}
-                </span>
-            </td>
-            <td>{{ lead.phases.count }}</td>
-            <td>{{ lead.created_by.email }}</td>
-            <td>{{ lead.created_at|date:"M d, Y" }}</td>
-        </tr>
-
-        {% empty %}
-        <tr>
-            <td colspan="6">No leads yet.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<section class="card table-card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Phases</th>
+                    <th>Created by</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in page_obj %}
+                <tr>
+                    <td><a href="{% url 'leads:lead-page-detail' lead.pk %}">{{ lead.project_name }}</a></td>
+                    <td>{{ lead.client_name }}</td>
+                    <td><span class="badge badge-{{ lead.status }}">{{ lead.get_status_display }}</span></td>
+                    <td>{{ lead.phases.count }}</td>
+                    <td>{{ lead.created_by.email }}</td>
+                    <td>{{ lead.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <p class="empty-title">No leads found</p>
+                            <p class="empty-text">{% if is_bd or is_super_admin %}Create the first lead to start the pipeline.{% else %}Nothing matches this filter yet.{% endif %}</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
 
 {% if page_obj.has_other_pages %}
 <div class="pagination">
     {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if query %}&q={{ query }}{% endif %}">Previous</a>
     {% endif %}
-
-    <span>
-        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-    </span>
-
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+        <a href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if query %}&q={{ query }}{% endif %}">Next</a>
     {% endif %}
 </div>
 {% endif %}
-
 {% endblock %}

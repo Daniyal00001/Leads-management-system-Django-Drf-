@@ -34,6 +34,15 @@ class Project(TimeStampedModel):
         default=ProjectStatus.ACTIVE,
     )
 
+    manager = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_as_manager",
+        help_text="The single Technical Manager assigned to this project on sale.",
+    )
+
     def __str__(self):
         return self.title
 
