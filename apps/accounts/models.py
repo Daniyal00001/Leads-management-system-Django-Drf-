@@ -7,7 +7,6 @@ from .managers import UserManager
 class User(AbstractUser):
     
     # Custom user model. Email is the login identifier instead of username.
-    # Roles are handled via Django Groups,
     
     username = None  # we don't use username at all
     email = models.EmailField(unique=True)
