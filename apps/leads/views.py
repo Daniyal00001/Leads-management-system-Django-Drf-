@@ -134,7 +134,15 @@ class PhaseAssignManagerAPIView(APIView):
     permission_classes = [IsBusinessDeveloper]
 
     def post(self, request, pk):
+        from apps.accounts.permissions import is_super_admin
         phase = get_object_or_404(Phase, pk=pk)
+
+        # Only the BD who created the lead (or superadmin) can assign managers
+        if phase.lead.created_by != request.user and not is_super_admin(request.user):
+            return Response(
+                {"detail": "Only the BD who created this lead can assign managers."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         serializer = PhaseManagerAssignSerializer(
             data=request.data
@@ -271,7 +279,7 @@ class PhaseCompleteAPIView(APIView):
 # ===================================================================
 
 class LeadCreateAPIView(APIView):
-    permission_classes = [IsBusinessDeveloper]
+    permission_classes = [IsBusinessDeveloper]  # also admin ( inherited from base permissions HasAnyRole)
 
     def post(self, request):
         serializer = LeadCreateSerializer(data=request.data)
@@ -358,8 +366,8 @@ def lead_list_page(request):
         .order_by("-created_at")
     )
 
-    status_filter = request.GET.get("status", "")
-    query = request.GET.get("q", "").strip()
+    status_filter = request.GET.get("status", "")    #URL se status lena
+    query = request.GET.get("q", "").strip()        #URL se serach query get karna, strip() se whitespace remove karna
 
     if status_filter in {choice[0] for choice in LeadStatus.choices}:
         leads_qs = leads_qs.filter(status=status_filter)
@@ -394,7 +402,14 @@ def lead_detail_page(request, pk):
 
     lead = get_object_or_404(
         Lead.objects.select_related("created_by", "sale_decided_by", "project")
-        .prefetch_related("phases__current_manager", "phases__phase_engineers__engineer"),
+        .prefetch_related(
+            "phases__current_manager",
+            "phases__phase_engineers__engineer",
+            "phases__manager_history__manager",
+            "phases__manager_history__performed_by",
+            "phases__engineer_history__engineer",
+            "phases__engineer_history__performed_by",
+        ),
         pk=pk,
     )
 

@@ -9,7 +9,7 @@ class UserManager(BaseUserManager):
     use_in_migrations = True
 
     # user creation 
-    def _create_user(self, email, password, **extra_fields):
+    def _create_user(self, email, password, **extra_fields):   #helper function
         if not email:
             raise ValueError("Users must have an email address")
         email = self.normalize_email(email)

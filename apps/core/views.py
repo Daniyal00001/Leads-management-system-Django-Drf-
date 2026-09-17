@@ -27,8 +27,8 @@ def dashboard_page(request):
     no_sale_leads = Lead.objects.filter(status=LeadStatus.NO_SALE).count()
     active_projects = Project.objects.filter(status="active").count()
 
-    commissions = CommissionRecord.objects.filter(user=user)
-    commission_total = commissions.aggregate(total=Sum("commission_amount"))["total"] or 0
+    commissions = CommissionRecord.objects.filter(user=user)  #queryset 
+    commission_total = commissions.aggregate(total=Sum("commission_amount"))["total"] or 0   #execute
     total_commission_org = CommissionRecord.objects.aggregate(total=Sum("commission_amount"))["total"] or 0
     total_leads = Lead.objects.count()
 
@@ -39,7 +39,7 @@ def dashboard_page(request):
     active_engineer = PhaseEngineer.objects.none()
 
     if bd:
-        ready_to_decide = (
+        ready_to_decide = (                                   #first query
             Lead.objects.filter(status=LeadStatus.OPEN)
             .annotate(
                 phase_count=Count("phases"),
@@ -52,7 +52,7 @@ def dashboard_page(request):
             .select_related("created_by")
             .order_by("-updated_at")
         )
-        needs_reassignment = (
+        needs_reassignment = (                                               #second query
             Phase.objects.filter(status=PhaseStatus.PENDING_REASSIGNMENT)
             .select_related("lead")
             .order_by("due_date")
@@ -92,36 +92,6 @@ def dashboard_page(request):
             .order_by("phase__due_date")
         )
 
-    role_guides = []
-    if super_admin:
-        role_guides.append(
-            {
-                "role": "Super Admin",
-                "text": "Oversee the pipeline, assign user roles, and step into any workflow.",
-            }
-        )
-    if is_business_developer(user):
-        role_guides.append(
-            {
-                "role": "Business Developer",
-                "text": "Create leads, add phases, assign technical managers, and close sales.",
-            }
-        )
-    if tm:
-        role_guides.append(
-            {
-                "role": "Technical Manager",
-                "text": "Accept assigned phases, add engineers, and mark phases complete.",
-            }
-        )
-    if engineer:
-        role_guides.append(
-            {
-                "role": "Engineer",
-                "text": "Accept assigned work, complete it, and mark it done.",
-            }
-        )
-
     return render(
         request,
         "dashboard.html",
@@ -145,7 +115,6 @@ def dashboard_page(request):
             "show_tm_queue": tm or super_admin,
             "show_engineer_queue": engineer,
             "show_commissions": bd or tm or super_admin,
-            "role_guides": role_guides,
             "user_count": user_role_counts() if super_admin else None,
         },
     )

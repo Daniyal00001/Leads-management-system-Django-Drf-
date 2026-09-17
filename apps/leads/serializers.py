@@ -14,7 +14,7 @@ class UserBasicSerializer(serializers.ModelSerializer):  # base class - acts as 
 # ==================================================================
 
 class PhaseEngineerSerializer(serializers.ModelSerializer):
-    engineer = UserBasicSerializer(read_only=True)    # inherit
+    engineer = UserBasicSerializer(read_only=True)    
     class Meta:
         model = PhaseEngineer
         fields = ["id", "engineer", "status"]
@@ -141,4 +141,4 @@ class LeadMarkSaleSerializer(serializers.Serializer):
             raise serializers.ValidationError("Manager not found.")
         if not user.groups.filter(name=Roles.TECHNICAL_MANAGER).exists():
             raise serializers.ValidationError("Selected user is not a Technical Manager.")
-        return value
+        return value

@@ -1,7 +1,7 @@
 from django import template
 from apps.accounts import permissions
 
-register = template.Library()
+register = template.Library()   #for cust`om template tags and filters`
 
 
 @register.filter(name="has_role")

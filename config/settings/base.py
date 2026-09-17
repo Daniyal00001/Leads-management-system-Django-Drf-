@@ -127,3 +127,6 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
+
+# Public site URL used in emails and other absolute links.
+APP_BASE_URL = config("APP_BASE_URL", default="http://localhost:8000").rstrip("/")

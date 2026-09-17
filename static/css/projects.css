@@ -1,0 +1,12 @@
+/* Project detail and list styles */
+.project-card-spacing {
+    margin-bottom: 24px;
+}
+
+.restricted-text {
+    font-style: italic;
+}
+
+.assign-manager-error-box {
+    margin-top: 12px;
+}

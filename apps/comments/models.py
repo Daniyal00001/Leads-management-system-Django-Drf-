@@ -9,7 +9,7 @@ from apps.core.models import TimeStampedModel
 class Comment(TimeStampedModel):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey("content_type", "object_id")
+    content_object = GenericForeignKey("content_type", "object_id")       #Ye database column nahi hai.Ye GenericForeignKey hai jo pehli 2 values ko combine karke actual object deta hai.
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

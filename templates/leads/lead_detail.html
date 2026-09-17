@@ -4,448 +4,551 @@
 {% block topbar_title %}Lead Details{% endblock %}
 
 {% block content %}
-<a href="{% url 'leads:lead-page-list' %}" class="back-link">
+<!-- Back link -->
+<a href="{% url 'leads:lead-page-list' %}"
+   class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-600 transition-colors mb-4">
     ← Back to Leads
 </a>
 
-<div class="page-header" style="margin-bottom: 20px;">
-    <div>
-        <p class="page-kicker">Lead #{{ lead.id }}</p>
-        <h1 style="margin: 4px 0 6px;">{{ lead.project_name }}</h1>
-        <div class="meta-tags">
+<!-- Page header -->
+<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
+    <div class="min-w-0">
+        <!-- <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 mb-1">Lead #{{ lead.id }}</p> -->
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 break-words">{{ lead.project_name }}</h1>
+        <div class="flex flex-wrap items-center gap-2 mt-2">
             <span class="badge badge-{{ lead.status }}">{{ lead.get_status_display }}</span>
-            <span class="meta-tag">
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: -2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"></path></svg>
+            <span class="inline-flex items-center gap-1 text-xs text-slate-500">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
                 {{ lead.platform_used }}
             </span>
-            <span class="meta-tag">
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: -2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span class="inline-flex items-center gap-1 text-xs text-slate-500">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 Created {{ lead.created_at|date:"M d, Y" }}
             </span>
         </div>
     </div>
 </div>
 
-<div class="lead-layout">
-    <!-- LEFT MAIN COLUMN: Workflow Phases -->
-    <div class="lead-main">
+<!-- Two-column layout: main left, sidebar right -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+    <!-- ========== LEFT: Workflow Phases ========== -->
+    <div class="xl:col-span-2 space-y-5">
+
+        <!-- Add Phase form -->
         {% if lead.status == "open" and is_lead_creator or lead.status == "open" and is_superadmin %}
-        <section class="card" style="margin-bottom: 20px;">
-            <div class="card-header" style="padding: 14px 18px; border-bottom: 1px solid var(--border);">
-                <h2 style="font-size: 15px; margin: 0;">Add Deliverable Phase</h2>
+        <section class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h2 class="text-sm font-semibold text-slate-800">Add Deliverable Phase</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Define an interview or test project phase and assign an initial Technical Manager.</p>
             </div>
-            <div class="card-body" style="padding: 16px 18px;">
-                <p class="muted" style="margin: 0 0 14px; font-size: 13px;">
-                    Define an interview or test project phase and assign an initial Technical Manager.
-                </p>
-                <form id="phase-form" class="stacked-form" action="#" onsubmit="return false;" style="max-width: 100%;">
+            <div class="p-5">
+                <form id="phase-form" action="#" onsubmit="return false;">
                     {% csrf_token %}
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-                        <div class="form-group">
-                            <label for="phase_type">Phase Type</label>
-                            <select id="phase_type" required>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label for="phase_type" class="block text-xs font-medium text-slate-600 mb-1.5">Phase Type</label>
+                            <select id="phase_type" required
+                                    class="block w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all">
                                 <option value="test_project">Test Project</option>
                                 <option value="interview">Interview</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="phase_start_date">Start Date</label>
-                            <input type="date" id="phase_start_date" required>
+                        <div>
+                            <label for="phase_start_date" class="block text-xs font-medium text-slate-600 mb-1.5">Start Date</label>
+                            <input type="date" id="phase_start_date" required
+                                   class="block w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all">
                         </div>
-                        <div class="form-group">
-                            <label for="phase_due_date">Due Date</label>
-                            <input type="date" id="phase_due_date" required>
+                        <div>
+                            <label for="phase_due_date" class="block text-xs font-medium text-slate-600 mb-1.5">Due Date</label>
+                            <input type="date" id="phase_due_date" required
+                                   class="block w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all">
                         </div>
                     </div>
-                    <div class="form-group" style="margin-top: 8px;">
-                        <label for="phase_manager">Technical Manager</label>
-                        <select id="phase_manager">
+                    <div class="mb-4">
+                        <label for="phase_manager" class="block text-xs font-medium text-slate-600 mb-1.5">Technical Manager</label>
+                        <select id="phase_manager"
+                                class="block w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all">
                             <option value="">Select Technical Manager (or assign later)</option>
                             {% for manager in technical_managers %}
                                 <option value="{{ manager.id }}">{{ manager.display_name }} ({{ manager.email }})</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div id="phase-form-errors" class="alert alert-error" style="display:none; margin-top: 10px;"></div>
-                    <div style="margin-top: 10px;">
-                        <button type="submit" class="btn btn-primary btn-sm">Add Phase</button>
-                    </div>
+                    <div id="phase-form-errors" class="hidden mb-3 px-4 py-3 rounded-xl text-sm bg-rose-50 text-rose-700 border border-rose-200"></div>
+                    <button type="submit"
+                            class="px-4 py-2 rounded-xl text-sm font-semibold bg-sky-100 text-sky-800 hover:bg-sky-200 border border-sky-300 shadow-sm transition-all">
+                        Add Phase
+                    </button>
                 </form>
             </div>
         </section>
         {% endif %}
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h2 style="font-size: 17px; margin: 0; font-weight: 700;">Workflow Deliverables</h2>
-            <span class="muted" style="font-size: 13px;">{{ lead.phases.count }} phase{% if lead.phases.count != 1 %}s{% endif %}</span>
+        <!-- Phases list -->
+        <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-800">Workflow Deliverables</h2>
+            <span class="text-xs text-slate-400">{{ lead.phases.count }} phase{% if lead.phases.count != 1 %}s{% endif %}</span>
         </div>
 
-        <div class="phase-list">
-            {% for phase in lead.phases.all %}
-            <article class="card phase-card" id="phase-{{ phase.id }}">
-                <div class="phase-card-head">
-                    <div>
-                        <p class="page-kicker">Phase {{ phase.order }}</p>
-                        <h3 style="margin: 2px 0 4px; font-size: 16px;">{{ phase.get_type_display }}</h3>
-                        <p class="muted" style="margin: 0; font-size: 13px;">
-                            {{ phase.start_date|date:"M d, Y" }} → {{ phase.due_date|date:"M d, Y" }}
-                            {% if phase.completed_at %}
-                                · <span style="color: #059669; font-weight: 600;">Completed {{ phase.completed_at|date:"M d, Y" }}</span>
-                            {% endif %}
-                        </p>
-                    </div>
-                    <span class="badge badge-{{ phase.status }}">{{ phase.get_status_display }}</span>
-                </div>
-
-                <div class="phase-card-body">
-                    <div class="phase-subgrid">
-                        <!-- Left Subcard: Technical Manager -->
-                        <div class="phase-subcard">
-                            <div>
-                                <div class="phase-subcard-title">
-                                    <span>Technical Manager</span>
-                                </div>
-                                
-                                {% if phase.current_manager %}
-                                    <div class="person-row" style="border-bottom: none; padding: 4px 0;">
-                                        <div>
-                                            <strong style="font-size: 14px;">{{ phase.current_manager.display_name }}</strong>
-                                            <div class="muted" style="font-size: 12px;">{{ phase.current_manager.email }}</div>
-                                        </div>
-                                    </div>
-                                    
-                                    {% if phase.status == "accepted" or phase.status == "in_progress" %}
-                                        <!-- Manager has accepted. Assignment is locked. No re-assignment form! -->
-                                        <div style="margin-top: 8px;">
-                                            <span class="badge badge-accepted" style="display: inline-flex; align-items: center; gap: 4px;">
-                                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                                Accepted & Assigned
-                                            </span>
-                                        </div>
-                                    {% elif phase.status == "completed" %}
-                                        <div style="margin-top: 8px;">
-                                            <span class="badge badge-completed">Phase Completed</span>
-                                        </div>
-                                    {% elif phase.status == "pending_acceptance" %}
-                                        <div style="margin-top: 8px;">
-                                            <span class="badge badge-pending_acceptance">⏳ Awaiting Manager Acceptance</span>
-                                        </div>
-
-                                        {% if phase.current_manager_id == user.id %}
-                                        <div class="inline-actions" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);">
-                                            <button type="button" class="btn btn-success btn-sm" onclick="acceptPhase({{ phase.id }})">Accept</button>
-                                            <button type="button" class="btn btn-danger btn-sm" onclick="declinePhase({{ phase.id }})">Decline</button>
-                                        </div>
-                                        {% endif %}
-
-                                        {% if lead.status == "open" and is_bd or lead.status == "open" and is_super_admin %}
-                                        <div style="margin-top: 10px;">
-                                            <details>
-                                                <summary style="font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline;">Change assigned manager</summary>
-                                                <form class="assign-row" style="margin-top: 6px; display: flex; gap: 8px; align-items: center; width: 100%;" onsubmit="return assignManager(event, {{ phase.id }})">
-                                                    <select required style="flex: 1 1 0; min-width: 0; width: 100%; font-size: 12px; padding: 6px 8px; text-overflow: ellipsis; overflow: hidden;">
-                                                        <option value="">Choose different manager</option>
-                                                        {% for manager in technical_managers %}
-                                                            {% if manager.id != phase.current_manager_id %}
-                                                                <option value="{{ manager.id }}">{{ manager.display_name }} ({{ manager.email }})</option>
-                                                            {% endif %}
-                                                        {% endfor %}
-                                                    </select>
-                                                    <button type="submit" class="btn btn-secondary btn-sm" style="flex-shrink: 0; white-space: nowrap;">Change</button>
-                                                </form>
-                                            </details>
-                                        </div>
-                                        {% endif %}
-                                    {% endif %}
-
-                                {% else %}
-                                    <!-- No manager assigned yet, or previous manager declined -->
-                                    <p class="muted" style="font-size: 13px; margin: 4px 0 8px;">No manager currently assigned.</p>
-                                    {% if phase.status == "pending_reassignment" %}
-                                        <div style="margin-bottom: 8px;">
-                                            <span class="badge badge-declined" style="font-size: 11px;">Manager declined · Reassignment needed</span>
-                                        </div>
-                                    {% endif %}
-
-                                    {% if lead.status == "open" and is_bd or lead.status == "open" and is_super_admin %}
-                                    <form class="assign-row" style="margin-top: 8px; display: flex; gap: 8px; align-items: center; width: 100%;" onsubmit="return assignManager(event, {{ phase.id }})">
-                                        <select required style="flex: 1 1 0; min-width: 0; width: 100%; font-size: 12px; padding: 6px 8px; text-overflow: ellipsis; overflow: hidden;">
-                                            <option value="">Assign technical manager</option>
-                                            {% for manager in technical_managers %}
-                                                <option value="{{ manager.id }}">{{ manager.display_name }} — {{ manager.email }}</option>
-                                            {% endfor %}
-                                        </select>
-                                        <button type="submit" class="btn btn-secondary btn-sm" style="flex-shrink: 0; white-space: nowrap;">Assign</button>
-                                    </form>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Right Subcard: Assigned Engineers -->
-                        <div class="phase-subcard">
-                            <div>
-                                <div class="phase-subcard-title">
-                                    <span>Assigned Engineers</span>
-                                    <span class="muted" style="font-weight: 500; text-transform: none;">{{ phase.phase_engineers.count }} total</span>
-                                </div>
-
-                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    {% for assignment in phase.phase_engineers.all %}
-                                    <div class="person-row" style="background: #fff; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;">
-                                        <div>
-                                            <strong style="font-size: 13px;">{{ assignment.engineer.display_name }}</strong>
-                                            <div class="muted" style="font-size: 11px;">{{ assignment.engineer.email }}</div>
-                                        </div>
-                                        <div class="inline-actions">
-                                            <span class="badge badge-{{ assignment.status }}" style="font-size: 11px;">{{ assignment.get_status_display }}</span>
-                                            {% if assignment.engineer_id == user.id and assignment.status == "pending" %}
-                                                <button type="button" class="btn btn-success btn-sm" onclick="acceptEngineer({{ assignment.id }})">Accept</button>
-                                                <button type="button" class="btn btn-danger btn-sm" onclick="declineEngineer({{ assignment.id }})">Decline</button>
-                                            {% elif assignment.engineer_id == user.id and assignment.status == "accepted" %}
-                                                <button type="button" class="btn btn-primary btn-sm" onclick="markEngineerDone({{ assignment.id }})">Done</button>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    {% empty %}
-                                    <p class="muted" style="font-size: 13px; margin: 4px 0 8px;">No engineers assigned to this phase yet.</p>
-                                    {% endfor %}
-                                </div>
-
-                                {% if phase.status == "accepted" or phase.status == "in_progress" %}
-                                    {% if is_tm and phase.current_manager_id == user.id or is_super_admin %}
-                                    <form class="assign-row" style="margin-top: 12px; display: flex; gap: 8px; align-items: center; width: 100%;" onsubmit="return addEngineer(event, {{ phase.id }})">
-                                        <select required style="flex: 1 1 0; min-width: 0; width: 100%; font-size: 12px; padding: 6px 8px; text-overflow: ellipsis; overflow: hidden;">
-                                            <option value="">Select engineer to add</option>
-                                            {% for engineer in engineers %}
-                                                <option value="{{ engineer.id }}">{{ engineer.display_name }} — {{ engineer.email }}</option>
-                                            {% endfor %}
-                                        </select>
-                                        <button type="submit" class="btn btn-secondary btn-sm" style="flex-shrink: 0; white-space: nowrap;">Add</button>
-                                    </form>
-                                    {% endif %}
-                                {% elif phase.status == "pending_acceptance" %}
-                                    <p class="muted" style="font-size: 12px; margin-top: 10px;">
-                                        Engineers can be assigned once the manager accepts the phase.
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Phase Bottom Bar: Actions & Timestamps -->
-                    <div class="phase-footer-bar">
-                        <div>
-                            {% if phase.status == "completed" %}
-                                <span style="color: #059669; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    Phase completed {% if phase.completed_at %}on {{ phase.completed_at|date:"M d, Y H:i" }}{% endif %}{% if phase.completed_by %} by {{ phase.completed_by.display_name }}{% endif %}
-                                </span>
-                            {% else %}
-                                <span class="muted" style="font-size: 13px;">Phase State: <strong>{{ phase.get_status_display }}</strong></span>
-                            {% endif %}
-                        </div>
-
-                        {% if phase.status == "accepted" or phase.status == "in_progress" %}
-                            {% if is_bd or is_super_admin or is_tm and phase.current_manager_id == user.id %}
-                                <button type="button" class="btn btn-primary btn-sm" onclick="completePhase({{ phase.id }})">
-                                    Mark phase complete
-                                </button>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                </div>
-            </article>
-            {% empty %}
-            <section class="card">
-                <div class="empty-state">
-                    <p class="empty-title">No phases added yet</p>
-                    <p class="empty-text">
-                        {% if is_bd or is_super_admin %}
-                            Use the form above to add the first interview or test project phase.
-                        {% else %}
-                            Awaiting a Business Developer to add phases and assign deliverables.
+        {% for phase in lead.phases.all %}
+        <article class="bg-white rounded-2xl border border-slate-100 shadow-sm" id="phase-{{ phase.id }}">
+            <!-- Phase header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-4 border-b border-slate-100">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Phase {{ phase.order }}</p>
+                    <h3 class="text-sm font-bold text-slate-800 mt-0.5">{{ phase.get_type_display }}</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        {{ phase.start_date|date:"M d, Y" }} → {{ phase.due_date|date:"M d, Y" }}
+                        {% if phase.completed_at %}
+                            · <span class="text-emerald-600 font-medium">Completed {{ phase.completed_at|date:"M d, Y" }}</span>
                         {% endif %}
                     </p>
                 </div>
-            </section>
-            {% endfor %}
+                <span class="badge badge-{{ phase.status }} self-start sm:self-auto">{{ phase.get_status_display }}</span>
+            </div>
+
+            <!-- Phase body: TM + Engineers -->
+            <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <!-- Technical Manager subcard -->
+                <div class="bg-slate-50 rounded-xl p-4">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Technical Manager</p>
+
+                    {% if phase.current_manager %}
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-xs font-bold shrink-0">
+                                {{ phase.current_manager.display_name|first|upper }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-800 truncate">{{ phase.current_manager.display_name }}</p>
+                                <p class="text-xs text-slate-400 truncate">{{ phase.current_manager.email }}</p>
+                            </div>
+                        </div>
+
+                        {% if phase.status == "accepted" or phase.status == "in_progress" %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-700">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Accepted &amp; Assigned
+                            </span>
+                        {% elif phase.status == "completed" %}
+                            <span class="badge badge-completed">Phase Completed</span>
+                        {% elif phase.status == "pending_acceptance" %}
+                            <span class="badge badge-pending_acceptance">⏳ Awaiting Acceptance</span>
+                            {% if phase.current_manager_id == user.id %}
+                            <div class="flex items-center gap-2 mt-3">
+                                <button type="button"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-all"
+                                        onclick="acceptPhase({{ phase.id }})">Accept</button>
+                                <button type="button"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-all"
+                                        onclick="declinePhase({{ phase.id }})">Decline</button>
+                            </div>
+                            {% endif %}
+                            {% if lead.status == "open" and is_lead_creator or lead.status == "open" and is_superadmin %}
+                            <details class="mt-3">
+                                <summary class="text-xs font-medium text-brand-600 cursor-pointer hover:text-brand-700">Change assigned manager</summary>
+                                <form class="flex gap-2 mt-2" onsubmit="return assignManager(event, {{ phase.id }})">
+                                    <select required
+                                            class="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-400 transition-all">
+                                        <option value="">Choose different manager</option>
+                                        {% for manager in technical_managers %}
+                                            {% if manager.id != phase.current_manager_id %}
+                                                <option value="{{ manager.id }}">{{ manager.display_name }} ({{ manager.email }})</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit"
+                                            class="px-2 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition-all shrink-0">Change</button>
+                                </form>
+                            </details>
+                            {% endif %}
+                        {% endif %}
+
+                    {% else %}
+                        <p class="text-xs text-slate-400 mb-3">No manager currently assigned.</p>
+                        {% if phase.status == "pending_reassignment" %}
+                            <span class="badge badge-declined text-xs">Manager declined · Reassignment needed</span>
+                        {% endif %}
+                        {% if lead.status == "open" and is_lead_creator or lead.status == "open" and is_superadmin %}
+                        <form class="flex gap-2 mt-3" onsubmit="return assignManager(event, {{ phase.id }})">
+                            <select required
+                                    class="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-400 transition-all">
+                                <option value="">Assign technical manager</option>
+                                {% for manager in technical_managers %}
+                                    <option value="{{ manager.id }}">{{ manager.display_name }} — {{ manager.email }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit"
+                                    class="px-2 py-1.5 rounded-lg text-xs font-semibold bg-sky-100 text-sky-800 hover:bg-sky-200 border border-sky-300 transition-all shrink-0">Assign</button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- Manager History subcard (superadmin / lead creator only) -->
+                {% if is_superadmin or is_lead_creator %}
+                {% with mh=phase.manager_history.all %}
+                {% if mh %}
+                <div class="bg-slate-50 rounded-xl p-4 col-span-full md:col-span-2">
+                    <details>
+                        <summary class="flex items-center justify-between cursor-pointer list-none">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Manager Assignment History</p>
+                            <span class="text-xs text-slate-400">{{ mh|length }} event{{ mh|length|pluralize }}</span>
+                        </summary>
+                        <div class="mt-3 space-y-1.5">
+                            {% for entry in mh %}
+                            <div class="flex items-start gap-3 bg-white rounded-lg px-3 py-2 border border-slate-100">
+                                <span class="mt-0.5 inline-flex items-center justify-center w-5 h-5 rounded-full shrink-0
+                                    {% if entry.action == 'assigned' %}bg-sky-100 text-sky-600
+                                    {% elif entry.action == 'accepted' %}bg-emerald-100 text-emerald-600
+                                    {% else %}bg-rose-100 text-rose-600{% endif %}">
+                                    {% if entry.action == 'assigned' %}
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    {% elif entry.action == 'accepted' %}
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    {% else %}
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    {% endif %}
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs text-slate-700">
+                                        <span class="font-semibold">{{ entry.manager.display_name }}</span>
+                                        <span class="text-slate-400"> — {{ entry.get_action_display }}</span>
+                                    </p>
+                                    <p class="text-xs text-slate-400">
+                                        by {{ entry.performed_by.display_name }} · {{ entry.action_at|date:"M d, Y H:i" }}
+                                        {% if entry.comment %}
+                                            · <em>"{{ entry.comment }}"</em>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                </div>
+                {% endif %}
+                {% endwith %}
+                {% endif %}
+
+                <!-- Engineers subcard -->
+                <div class="bg-slate-50 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Assigned Engineers</p>
+                        <span class="text-xs text-slate-400">{{ phase.phase_engineers.count }} total</span>
+                    </div>
+
+                    <div class="space-y-2 mb-3">
+                        {% for assignment in phase.phase_engineers.all %}
+                        <div class="flex items-center justify-between gap-2 bg-white rounded-lg px-3 py-2 border border-slate-100">
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-slate-800 truncate">{{ assignment.engineer.display_name }}</p>
+                                <p class="text-xs text-slate-400 truncate">{{ assignment.engineer.email }}</p>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <span class="badge badge-{{ assignment.status }} text-xs">{{ assignment.get_status_display }}</span>
+                                {% if assignment.engineer_id == user.id and assignment.status == "pending" %}
+                                    <button type="button"
+                                            class="px-2 py-1 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-all"
+                                            onclick="acceptEngineer({{ assignment.id }})">Accept</button>
+                                    <button type="button"
+                                            class="px-2 py-1 rounded text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-all"
+                                            onclick="declineEngineer({{ assignment.id }})">Decline</button>
+                                {% elif assignment.engineer_id == user.id and assignment.status == "accepted" %}
+                                    <button type="button"
+                                            class="px-2 py-1 rounded text-xs font-semibold bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 transition-all"
+                                            onclick="markEngineerDone({{ assignment.id }})">Done</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-xs text-slate-400">No engineers assigned to this phase yet.</p>
+                        {% endfor %}
+                    </div>
+
+                    {% if phase.status == "accepted" or phase.status == "in_progress" %}
+                        {% if is_tm and phase.current_manager_id == user.id or is_super_admin %}
+                        <form class="flex gap-2 mt-2" onsubmit="return addEngineer(event, {{ phase.id }})">
+                            <select required
+                                    class="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-400 transition-all">
+                                <option value="">Select engineer to add</option>
+                                {% for engineer in engineers %}
+                                    <option value="{{ engineer.id }}">{{ engineer.display_name }} — {{ engineer.email }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit"
+                                    class="px-2 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition-all shrink-0">Add</button>
+                        </form>
+                        {% endif %}
+                    {% elif phase.status == "pending_acceptance" %}
+                        <p class="text-xs text-slate-400">Engineers can be assigned once the manager accepts the phase.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Engineer History subcard (superadmin / lead creator / TM of this phase) -->
+                {% if is_superadmin or is_lead_creator or is_tm and phase.current_manager_id == user.id %}
+                {% with eh=phase.engineer_history.all %}
+                {% if eh %}
+                <div class="bg-slate-50 rounded-xl p-4 col-span-full md:col-span-2">
+                    <details>
+                        <summary class="flex items-center justify-between cursor-pointer list-none">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Engineer Assignment History</p>
+                            <span class="text-xs text-slate-400">{{ eh|length }} event{{ eh|length|pluralize }}</span>
+                        </summary>
+                        <div class="mt-3 space-y-1.5">
+                            {% for entry in eh %}
+                            <div class="flex items-start gap-3 bg-white rounded-lg px-3 py-2 border border-slate-100">
+                                <span class="mt-0.5 inline-flex items-center justify-center w-5 h-5 rounded-full shrink-0
+                                    {% if entry.action == 'assigned' %}bg-sky-100 text-sky-600
+                                    {% elif entry.action == 'accepted' %}bg-emerald-100 text-emerald-600
+                                    {% elif entry.action == 'marked_done' %}bg-violet-100 text-violet-600
+                                    {% else %}bg-rose-100 text-rose-600{% endif %}">
+                                    {% if entry.action == 'assigned' %}
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    {% elif entry.action == 'accepted' %}
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    {% elif entry.action == 'marked_done' %}
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    {% else %}
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    {% endif %}
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs text-slate-700">
+                                        <span class="font-semibold">{{ entry.engineer.display_name }}</span>
+                                        <span class="text-slate-400"> — {{ entry.get_action_display }}</span>
+                                    </p>
+                                    <p class="text-xs text-slate-400">
+                                        by {{ entry.performed_by.display_name }} · {{ entry.action_at|date:"M d, Y H:i" }}
+                                        {% if entry.comment %}
+                                            · <em>"{{ entry.comment }}"</em>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                </div>
+                {% endif %}
+                {% endwith %}
+                {% endif %}
+            </div>
+
+            <!-- Phase footer bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-3.5 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+                <div>
+                    {% if phase.status == "completed" %}
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Phase completed{% if phase.completed_at %} on {{ phase.completed_at|date:"M d, Y H:i" }}{% endif %}{% if phase.completed_by %} by {{ phase.completed_by.display_name }}{% endif %}
+                        </span>
+                    {% else %}
+                        <span class="text-xs text-slate-400">Phase State: <strong class="text-slate-600">{{ phase.get_status_display }}</strong></span>
+                    {% endif %}
+                </div>
+                {% if phase.status == "accepted" or phase.status == "in_progress" %}
+                    {% if is_lead_creator or is_superadmin or is_tm and phase.current_manager_id == user.id %}
+                    <button type="button"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-100 text-sky-800 hover:bg-sky-200 border border-sky-300 shadow-sm transition-all shrink-0"
+                            onclick="completePhase({{ phase.id }})">
+                        Mark phase complete
+                    </button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </article>
+        {% empty %}
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-12 text-center">
+            <p class="text-sm font-medium text-slate-500">No phases added yet</p>
+            <p class="text-xs text-slate-400 mt-1">
+                {% if is_bd or is_super_admin %}
+                    Use the form above to add the first interview or test project phase.
+                {% else %}
+                    Awaiting a Business Developer to add phases and assign deliverables.
+                {% endif %}
+            </p>
         </div>
+        {% endfor %}
     </div>
 
-    <!-- RIGHT SIDEBAR: Deal Decision, Lead Metadata & Comments -->
-    <div class="lead-sidebar">
-        <!-- 1. DEAL OUTCOME / DECISION CARD -->
+    <!-- ========== RIGHT: Decision, Info, Comments ========== -->
+    <div class="xl:col-span-1 space-y-5">
+
+        <!-- 1. Deal decision card -->
         {% if lead.status == "open" and lead.all_phases_completed %}
-        <div class="decision-card is-ready">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #10b981; color: #fff; font-size: 13px; font-weight: 700;">✓</span>
-                <h3 style="margin: 0; font-size: 15px; color: #065f46;">Ready to Decide Deal</h3>
+        <section class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold">✓</span>
+                <h3 class="text-sm font-bold text-emerald-800">Ready to Decide Deal</h3>
             </div>
-            <p class="muted" style="font-size: 13px; margin: 0 0 14px; color: #047857;">
-                All deliverable phases are marked complete! Record the final deal outcome below.
-            </p>
+            <p class="text-xs text-emerald-700 mb-4">All deliverable phases are marked complete! Record the final deal outcome below.</p>
             {% if is_lead_creator or is_superadmin %}
-            <form id="mark-sale-form" class="stacked-form" action="#" onsubmit="return false;" style="max-width: 100%;">
+            <form id="mark-sale-form" action="#" onsubmit="return false;" class="space-y-3">
                 {% csrf_token %}
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label for="sale_amount" style="font-weight: 600; font-size: 13px;">Sale Amount (Rs.)</label>
-                    <input type="number" id="sale_amount" step="0.01" min="0.01" placeholder="e.g. 150000.00" required style="font-size: 15px; font-weight: 600;">
+                <div>
+                    <label for="sale_amount" class="block text-xs font-semibold text-emerald-700 mb-1.5">Sale Amount (Rs.)</label>
+                    <input type="number" id="sale_amount" step="0.01" min="0.01" placeholder="e.g. 150000.00" required
+                           class="block w-full px-3 py-2 rounded-lg border border-emerald-300 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-400 transition-all">
                 </div>
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label for="sale_manager_id" style="font-weight: 600; font-size: 13px;">Assign Project Manager</label>
-                    <select id="sale_manager_id" required>
+                <div>
+                    <label for="sale_manager_id" class="block text-xs font-semibold text-emerald-700 mb-1.5">Assign Project Manager</label>
+                    <select id="sale_manager_id" required
+                            class="block w-full px-3 py-2 rounded-lg border border-emerald-300 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all">
                         <option value="">— Select Technical Manager —</option>
                         {% for tm in technical_managers %}
                         <option value="{{ tm.id }}">{{ tm.display_name|default:tm.email }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div id="sale-form-errors" class="alert alert-error" style="display:none; margin-bottom: 10px;"></div>
-                <div class="inline-actions" style="display: flex; gap: 8px;">
-                    <button type="submit" class="btn btn-success" style="flex: 1; justify-content: center;">Mark as Sale</button>
-                    <button type="button" class="btn btn-danger" style="flex: 1; justify-content: center;" onclick="markNoSale()">Mark as No Sale</button>
+                <div id="sale-form-errors" class="hidden px-3 py-2 rounded-lg text-xs bg-rose-50 text-rose-700 border border-rose-200"></div>
+                <div class="flex gap-2">
+                    <button type="submit"
+                            class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition-all">
+                        Mark as Sale
+                    </button>
+                    <button type="button"
+                            class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold bg-rose-100 text-rose-800 hover:bg-rose-200 border border-rose-300 transition-all"
+                            onclick="markNoSale()">
+                        No Sale
+                    </button>
                 </div>
             </form>
             {% else %}
-            <p class="muted" style="font-size: 12px; margin: 0;">
-                Waiting for Business Developer or Super Admin to record the sale outcome.
-            </p>
+            <p class="text-xs text-emerald-600">Waiting for Business Developer or Super Admin to record the sale outcome.</p>
             {% endif %}
-        </div>
+        </section>
+
         {% elif lead.status == "open" %}
-        <div class="decision-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <h3 style="margin: 0; font-size: 14px; font-weight: 700;">Workflow In Progress</h3>
+        <section class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <h3 class="text-sm font-semibold text-slate-800">Workflow In Progress</h3>
                 <span class="badge badge-open">Open</span>
             </div>
-            <p class="muted" style="font-size: 13px; margin: 0;">
-                Complete all phase deliverables before closing the lead. Once all phases are marked complete, the decision controls will unlock here.
-            </p>
-        </div>
+            <p class="text-xs text-slate-500">Complete all phase deliverables before closing the lead. Once all phases are marked complete, the decision controls will unlock here.</p>
+        </section>
+
         {% elif lead.status == "sale" %}
-        <div class="decision-card is-ready">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0; font-size: 15px; color: #065f46; display: flex; align-items: center; gap: 6px;">
-                    <span>★</span> Deal Closed — Won
-                </h3>
+        <section class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <h3 class="text-sm font-bold text-emerald-800">★ Deal Closed — Won</h3>
                 <span class="badge badge-sale">Sale</span>
             </div>
-            <div class="info-row">
-                <span class="label">Sale Amount:</span>
-                <span class="val" style="font-size: 15px; color: #059669;">Rs. {{ lead.sale_amount|default:"—" }}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Decided On:</span>
-                <span class="val">{{ lead.sale_decided_at|date:"M d, Y" }}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Decided By:</span>
-                <span class="val">{{ lead.sale_decided_by.display_name|default:lead.sale_decided_by.email }}</span>
-            </div>
+            <dl class="space-y-2 text-xs">
+                <div class="flex justify-between gap-2">
+                    <dt class="text-slate-500">Sale Amount:</dt>
+                    <dd class="font-semibold text-emerald-700">Rs. {{ lead.sale_amount|default:"—" }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                    <dt class="text-slate-500">Decided On:</dt>
+                    <dd class="text-slate-700">{{ lead.sale_decided_at|date:"M d, Y" }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                    <dt class="text-slate-500">Decided By:</dt>
+                    <dd class="text-slate-700">{{ lead.sale_decided_by.display_name|default:lead.sale_decided_by.email }}</dd>
+                </div>
+            </dl>
             {% if lead.project %}
-            <div style="margin-top: 14px; text-align: right;">
-                <a href="{% url 'projects:project-page-detail' lead.project.id %}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-                    View Project & Commissions →
-                </a>
-            </div>
+            <a href="{% url 'projects:project-page-detail' lead.project.id %}"
+               class="mt-4 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 transition-all">
+                View Project &amp; Commissions →
+            </a>
             {% endif %}
-        </div>
+        </section>
+
         {% elif lead.status == "no_sale" %}
-        <div class="decision-card" style="border-left: 4px solid var(--red);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <h3 style="margin: 0; font-size: 15px; color: var(--red);">Deal Closed — Lost</h3>
+        <section class="bg-rose-50 border border-rose-200 rounded-2xl p-5">
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <h3 class="text-sm font-bold text-rose-800">Deal Closed — Lost</h3>
                 <span class="badge badge-no_sale">No Sale</span>
             </div>
-            <div class="info-row">
-                <span class="label">Decided On:</span>
-                <span class="val">{{ lead.sale_decided_at|date:"M d, Y" }}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Decided By:</span>
-                <span class="val">{{ lead.sale_decided_by.display_name|default:lead.sale_decided_by.email }}</span>
-            </div>
-        </div>
+            <dl class="space-y-2 text-xs">
+                <div class="flex justify-between gap-2">
+                    <dt class="text-slate-500">Decided On:</dt>
+                    <dd class="text-slate-700">{{ lead.sale_decided_at|date:"M d, Y" }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                    <dt class="text-slate-500">Decided By:</dt>
+                    <dd class="text-slate-700">{{ lead.sale_decided_by.display_name|default:lead.sale_decided_by.email }}</dd>
+                </div>
+            </dl>
+        </section>
         {% endif %}
 
-        <!-- 2. LEAD & CLIENT DETAILS CARD -->
-        <section class="card" style="margin-bottom: 20px;">
-            <div class="card-header" style="padding: 14px 18px; border-bottom: 1px solid var(--border);">
-                <h3 style="font-size: 14px; margin: 0; font-weight: 700;">Lead Information</h3>
+        <!-- 2. Lead & Client information -->
+        <section class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h3 class="text-sm font-semibold text-slate-800">Lead Information</h3>
             </div>
-            <div class="card-body" style="padding: 16px 18px;">
-                <div class="info-subgroup">
-                    <h4>Client Contact</h4>
-                    <div class="info-row">
-                        <span class="label">Client Name:</span>
-                        <span class="val">{{ lead.client_name }}</span>
-                    </div>
-                    {% if can_see_full_details %}
-                    <div class="info-row">
-                        <span class="label">Email:</span>
-                        <span class="val">
-                            {% if lead.client_email %}
-                                <a href="mailto:{{ lead.client_email }}" style="color: var(--primary); text-decoration: none;">{{ lead.client_email }}</a>
-                            {% else %}—{% endif %}
-                        </span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Contact / Phone:</span>
-                        <span class="val">
-                            {% if lead.client_contact %}
-                                <a href="tel:{{ lead.client_contact }}" style="color: var(--primary); text-decoration: none;">{{ lead.client_contact }}</a>
-                            {% else %}—{% endif %}
-                        </span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Address:</span>
-                        <span class="val">{{ lead.client_address|default:"—" }}</span>
-                    </div>
-                    {% else %}
-                    <p class="muted" style="font-size: 12px; margin: 6px 0 0; font-style: italic;">Contact details are restricted to authorized personnel.</p>
-                    {% endif %}
+            <div class="p-5 space-y-5">
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Client Contact</h4>
+                    <dl class="space-y-2 text-xs">
+                        <div class="flex gap-2">
+                            <dt class="text-slate-400 w-24 shrink-0">Client Name:</dt>
+                            <dd class="text-slate-700 font-medium">{{ lead.client_name }}</dd>
+                        </div>
+                        {% if can_see_full_details %}
+                        <div class="flex gap-2">
+                            <dt class="text-slate-400 w-24 shrink-0">Email:</dt>
+                            <dd>{% if lead.client_email %}<a href="mailto:{{ lead.client_email }}" class="text-brand-600 hover:text-brand-700">{{ lead.client_email }}</a>{% else %}—{% endif %}</dd>
+                        </div>
+                        <div class="flex gap-2">
+                            <dt class="text-slate-400 w-24 shrink-0">Contact:</dt>
+                            <dd>{% if lead.client_contact %}<a href="tel:{{ lead.client_contact }}" class="text-brand-600 hover:text-brand-700">{{ lead.client_contact }}</a>{% else %}—{% endif %}</dd>
+                        </div>
+                        <div class="flex gap-2">
+                            <dt class="text-slate-400 w-24 shrink-0">Address:</dt>
+                            <dd class="text-slate-700">{{ lead.client_address|default:"—" }}</dd>
+                        </div>
+                        {% else %}
+                        <p class="text-xs text-slate-400 italic">Contact details are restricted to authorized personnel.</p>
+                        {% endif %}
+                    </dl>
                 </div>
-
-                <div class="info-subgroup">
-                    <h4>Deal Specs</h4>
-                    <div class="info-row">
-                        <span class="label">Platform:</span>
-                        <span class="val">{{ lead.platform_used }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Created By:</span>
-                        <span class="val">{{ lead.created_by.display_name|default:lead.created_by.email }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Created Date:</span>
-                        <span class="val">{{ lead.created_at|date:"M d, Y" }}</span>
-                    </div>
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Deal Specs</h4>
+                    <dl class="space-y-2 text-xs">
+                        <div class="flex gap-2">
+                            <dt class="text-slate-400 w-24 shrink-0">Platform:</dt>
+                            <dd class="text-slate-700">{{ lead.platform_used }}</dd>
+                        </div>
+                        <div class="flex gap-2">
+                            <dt class="text-slate-400 w-24 shrink-0">Created By:</dt>
+                            <dd class="text-slate-700">{{ lead.created_by.display_name|default:lead.created_by.email }}</dd>
+                        </div>
+                        <div class="flex gap-2">
+                            <dt class="text-slate-400 w-24 shrink-0">Created:</dt>
+                            <dd class="text-slate-700">{{ lead.created_at|date:"M d, Y" }}</dd>
+                        </div>
+                    </dl>
                 </div>
-
                 {% if can_see_full_details and lead.comments_note %}
-                <div class="info-subgroup" style="margin-bottom: 0;">
-                    <h4>Internal Notes</h4>
-                    <div class="note-box">
-                        {{ lead.comments_note }}
-                    </div>
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Internal Notes</h4>
+                    <div class="px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-100 text-xs text-slate-700">{{ lead.comments_note }}</div>
                 </div>
                 {% endif %}
             </div>
         </section>
 
-        <!-- 3. COMMENTS & DISCUSSION CARD -->
-        <section class="card">
-            <div class="card-header" style="padding: 14px 18px; border-bottom: 1px solid var(--border);">
-                <h3 style="font-size: 14px; margin: 0; font-weight: 700;">Discussion & Notes</h3>
+        <!-- 3. Discussion & Comments -->
+        <section class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h3 class="text-sm font-semibold text-slate-800">Discussion &amp; Notes</h3>
             </div>
-            <div class="card-body" style="padding: 16px 18px;">
-                <div id="comments-list"><p class="muted" style="font-size: 13px;">Loading comments...</p></div>
-                <form id="comment-form" class="comment-form" enctype="multipart/form-data" action="#" onsubmit="return false;" style="margin-top: 14px;">
+            <div class="p-5 space-y-4">
+                <div id="comments-list"><p class="text-xs text-slate-400">Loading comments…</p></div>
+                <form id="comment-form" class="space-y-3" enctype="multipart/form-data" action="#" onsubmit="return false;">
                     {% csrf_token %}
-                    <textarea id="comment-body" placeholder="Write a note, feedback, or update..." required style="font-size: 13px;"></textarea>
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <input type="file" id="comment-images" multiple accept="image/*" style="font-size: 12px; max-width: 190px;">
-                        <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+                    <textarea id="comment-body" placeholder="Write a note, feedback, or update…" required rows="3"
+                              class="block w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent resize-none transition-all"></textarea>
+                    <div class="flex flex-col gap-2">
+                        <input type="file" id="comment-images" multiple accept="image/*"
+                               class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition-all w-full">
+                        <button type="submit"
+                                class="w-full px-4 py-2 rounded-xl text-sm font-semibold bg-sky-100 text-sky-800 hover:bg-sky-200 border border-sky-300 shadow-sm transition-all">Post Comment</button>
                     </div>
                 </form>
             </div>
@@ -466,67 +569,44 @@ try {
 }
 
 function acceptPhase(phaseId) {
-    apiPost(`/api/phases/${phaseId}/accept/`, {})
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/phases/${phaseId}/accept/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
 }
-
 function declinePhase(phaseId) {
     const comment = prompt("Reason for declining (optional):", "");
     if (comment === null) return;
-    apiPost(`/api/phases/${phaseId}/decline/`, { comment })
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/phases/${phaseId}/decline/`, { comment }).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
 }
-
 function completePhase(phaseId) {
     if (!confirm("Mark this phase as complete?")) return;
-    apiPost(`/api/phases/${phaseId}/complete/`, {})
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/phases/${phaseId}/complete/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
 }
-
 function assignManager(event, phaseId) {
     event.preventDefault();
     const select = event.target.querySelector("select");
     const managerId = parseInt(select.value, 10);
     if (!managerId) return false;
-    apiPost(`/api/phases/${phaseId}/assign-manager/`, { manager_id: managerId })
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/phases/${phaseId}/assign-manager/`, { manager_id: managerId }).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
     return false;
 }
-
 function addEngineer(event, phaseId) {
     event.preventDefault();
     const select = event.target.querySelector("select");
     const engineerId = parseInt(select.value, 10);
     if (!engineerId) return false;
-    apiPost(`/api/phases/${phaseId}/add-engineer/`, { engineer_id: engineerId })
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/phases/${phaseId}/add-engineer/`, { engineer_id: engineerId }).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
     return false;
 }
-
 function acceptEngineer(assignmentId) {
-    apiPost(`/api/phase-engineers/${assignmentId}/accept/`, {})
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/phase-engineers/${assignmentId}/accept/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
 }
-
 function declineEngineer(assignmentId) {
     const comment = prompt("Reason for declining (optional):", "");
     if (comment === null) return;
-    apiPost(`/api/phase-engineers/${assignmentId}/decline/`, { comment })
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/phase-engineers/${assignmentId}/decline/`, { comment }).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
 }
-
 function markEngineerDone(assignmentId) {
     if (!confirm("Mark this assignment as done?")) return;
-    apiPost(`/api/phase-engineers/${assignmentId}/mark-done/`, {})
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/phase-engineers/${assignmentId}/mark-done/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
 }
 
 const phaseForm = document.getElementById("phase-form");
@@ -539,14 +619,12 @@ if (phaseForm) {
             start_date: document.getElementById("phase_start_date").value,
             due_date: document.getElementById("phase_due_date").value,
         };
-        if (managerVal) {
-            payload.manager_id = parseInt(managerVal, 10);
-        }
+        if (managerVal) payload.manager_id = parseInt(managerVal, 10);
         apiPost(`/api/leads/${LEAD_ID}/phases/create/`, payload)
             .then(() => location.reload())
             .catch((err) => {
                 const box = document.getElementById("phase-form-errors");
-                box.style.display = "block";
+                box.classList.remove("hidden");
                 box.textContent = formatApiError(err);
             });
     });
@@ -560,7 +638,7 @@ if (markSaleForm) {
         const managerId = managerIdEl ? parseInt(managerIdEl.value, 10) : null;
         if (!managerId) {
             const box = document.getElementById("sale-form-errors");
-            box.style.display = "block";
+            box.classList.remove("hidden");
             box.textContent = "Please select a Technical Manager for this project.";
             return;
         }
@@ -571,7 +649,7 @@ if (markSaleForm) {
             .then((data) => { window.location.href = `/projects/${data.project_id}/`; })
             .catch((err) => {
                 const box = document.getElementById("sale-form-errors");
-                box.style.display = "block";
+                box.classList.remove("hidden");
                 box.textContent = formatApiError(err);
             });
     });
@@ -579,9 +657,7 @@ if (markSaleForm) {
 
 function markNoSale() {
     if (!confirm("Mark this lead as No Sale? This cannot be undone.")) return;
-    apiPost(`/api/leads/${LEAD_ID}/mark-no-sale/`, {})
-        .then(() => location.reload())
-        .catch((err) => alert(formatApiError(err)));
+    apiPost(`/api/leads/${LEAD_ID}/mark-no-sale/`, {}).then(() => location.reload()).catch((err) => alert(formatApiError(err)));
 }
 </script>
 {% endblock %}

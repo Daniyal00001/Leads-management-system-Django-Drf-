@@ -12,7 +12,10 @@ class NotificationType(models.TextChoices):
     PHASE_DECLINED = "phase_declined", "Phase Declined"
     PHASE_COMPLETED = "phase_completed", "Phase Completed"
     ENGINEER_ASSIGNED = "engineer_assigned", "Engineer Assigned"
+    ENGINEER_DECLINED = "engineer_declined", "Engineer Declined"
+    LEAD_CREATED = "lead_created", "New Lead Created"
     LEAD_SALE = "lead_sale", "Lead Marked as Sale"
+    LEAD_NO_SALE = "lead_no_sale", "Lead Marked as No Sale"
     PROJECT_ASSIGNED = "project_assigned", "Project Assigned"
 
 
