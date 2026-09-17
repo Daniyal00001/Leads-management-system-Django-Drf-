@@ -279,7 +279,7 @@ class PhaseCompleteAPIView(APIView):
 # ===================================================================
 
 class LeadCreateAPIView(APIView):
-    permission_classes = [IsBusinessDeveloper]
+    permission_classes = [IsBusinessDeveloper]  # also admin ( inherited from base permissions HasAnyRole)
 
     def post(self, request):
         serializer = LeadCreateSerializer(data=request.data)
@@ -366,8 +366,8 @@ def lead_list_page(request):
         .order_by("-created_at")
     )
 
-    status_filter = request.GET.get("status", "")
-    query = request.GET.get("q", "").strip()
+    status_filter = request.GET.get("status", "")    #URL se status lena
+    query = request.GET.get("q", "").strip()        #URL se serach query get karna, strip() se whitespace remove karna
 
     if status_filter in {choice[0] for choice in LeadStatus.choices}:
         leads_qs = leads_qs.filter(status=status_filter)

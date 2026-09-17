@@ -5,7 +5,7 @@ from .roles import Roles
 
 
 class UserListSerializer(serializers.ModelSerializer):
-    roles = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()    #Roles ki value  ek custom function se nikalni hai  --> get_roles()
     display_name = serializers.CharField(read_only=True)
 
     class Meta:
@@ -26,7 +26,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
 
 class UserRoleUpdateSerializer(serializers.Serializer):
-    roles = serializers.ListField(child=serializers.CharField(), allow_empty=True)
+    roles = serializers.ListField(child=serializers.CharField(), allow_empty=True)  #incoming roles data ka basic structure/type check like in list of strings, allow_empty means empty list is allowed
 
     def validate_roles(self, value):
         invalid = sorted(set(value) - set(Roles.ALL))

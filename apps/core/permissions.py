@@ -4,7 +4,7 @@ from apps.accounts.roles import Roles
 
 
 class HasAnyRole(BasePermission):
-    """Allow access if the user is a superuser, Super Admin, or has any allowed_roles."""
+    #Allow access if the user is a superuser, Super Admin, or has any allowed_roles    # base class
 
     allowed_roles = []
 

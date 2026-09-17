@@ -14,10 +14,10 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function getCsrfToken() {
+function getCsrfToken() {    
     let token = getCookie('csrftoken');
     if (!token) {
-        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');      
         if (input) token = input.value;
     }
     return token || '';

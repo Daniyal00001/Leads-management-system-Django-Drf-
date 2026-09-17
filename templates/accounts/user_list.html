@@ -40,7 +40,7 @@
                                     {% else %}bg-slate-100 text-slate-600{% endif %}">
                                     {{ role }}
                                 </span>
-                            {% empty %}
+                            {% empty %}  #fallback of forloop if no roles are assigned to user
                                 {% if member.is_superuser %}
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-700">Super Admin</span>
                                 {% else %}

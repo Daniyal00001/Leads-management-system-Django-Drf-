@@ -55,7 +55,7 @@ def notification_list_page(request):
     items = [
         {
             "notification": item,
-            "url": _notification_url(item),
+            "url": _notification_url(item),         #creating url of each notification in the list
         }
         for item in notifications[:50]
     ]

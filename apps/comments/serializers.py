@@ -55,7 +55,7 @@ class CommentCreateSerializer(serializers.Serializer): # not a model serializer
         except ContentType.DoesNotExist:
             raise serializers.ValidationError("Invalid target model.")
 
-        target_model = content_type.model_class()                      #check object 
+        target_model = content_type.model_class()                      #check  targeted object exists or not, like lead with id 1 exists or not
         if not target_model.objects.filter(pk=attrs["object_id"]).exists():
             raise serializers.ValidationError(f"{attrs['model_name']} with this id does not exist.")
 

@@ -6,7 +6,7 @@ from apps.accounts.permissions import (
 )
 
 
-def app_context(request):
+def app_context(request):                         #context file avaliable in all templates
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return {

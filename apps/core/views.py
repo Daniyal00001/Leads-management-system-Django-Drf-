@@ -27,8 +27,8 @@ def dashboard_page(request):
     no_sale_leads = Lead.objects.filter(status=LeadStatus.NO_SALE).count()
     active_projects = Project.objects.filter(status="active").count()
 
-    commissions = CommissionRecord.objects.filter(user=user)
-    commission_total = commissions.aggregate(total=Sum("commission_amount"))["total"] or 0
+    commissions = CommissionRecord.objects.filter(user=user)  #queryset 
+    commission_total = commissions.aggregate(total=Sum("commission_amount"))["total"] or 0   #execute
     total_commission_org = CommissionRecord.objects.aggregate(total=Sum("commission_amount"))["total"] or 0
     total_leads = Lead.objects.count()
 
@@ -39,7 +39,7 @@ def dashboard_page(request):
     active_engineer = PhaseEngineer.objects.none()
 
     if bd:
-        ready_to_decide = (
+        ready_to_decide = (                                   #first query
             Lead.objects.filter(status=LeadStatus.OPEN)
             .annotate(
                 phase_count=Count("phases"),
@@ -52,7 +52,7 @@ def dashboard_page(request):
             .select_related("created_by")
             .order_by("-updated_at")
         )
-        needs_reassignment = (
+        needs_reassignment = (                                               #second query
             Phase.objects.filter(status=PhaseStatus.PENDING_REASSIGNMENT)
             .select_related("lead")
             .order_by("due_date")

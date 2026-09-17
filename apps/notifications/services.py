@@ -1,10 +1,11 @@
 from django.core.mail import send_mail
 from django.conf import settings
 
+from apps.core.utils import absolute_url
 from .models import Notification, NotificationType
 
 
-def _send_mail(subject, message, recipient_email):
+def _send_mail(subject, message, recipient_email):    #helper func
     if not recipient_email:
         return
     send_mail(
@@ -57,9 +58,9 @@ def notify_phase_assigned(phase, manager):
             f"({phase.get_type_display()}) on the lead '{phase.lead.project_name}'.\n"
             f"Due date: {phase.due_date}\n\n"
             f"Please log in and go to your Assignments page to Accept or Decline:\n"
-            f"http://localhost:8000/leads/assignments/\n\n"
+            f"{absolute_url('leads:assignments')}\n\n"
             f"You can also accept/decline directly from the lead detail page:\n"
-            f"http://localhost:8000/leads/{phase.lead_id}/\n\n"
+            f"{absolute_url('leads:lead-page-detail', phase.lead_id)}\n\n"
             f"— Lead Management System"
         ),
         recipient_email=manager.email,
@@ -128,7 +129,11 @@ def notify_engineer_assigned(phase, engineer):
             f"You have been assigned to Phase {phase.order} "
             f"({phase.get_type_display()}) on '{phase.lead.project_name}'.\n"
             f"Due date: {phase.due_date}\n\n"
-            f"Please log in to accept or decline this assignment."
+            f"Please log in and go to your Assignments page to Accept or Decline:\n"
+            f"{absolute_url('leads:assignments')}\n\n"
+            f"Lead detail:\n"
+            f"{absolute_url('leads:lead-page-detail', phase.lead_id)}\n\n"
+            f"— Lead Management System"
         ),
         recipient_email=engineer.email,
     )

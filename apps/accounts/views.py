@@ -41,7 +41,7 @@ class UserRoleUpdateAPIView(APIView):
         return Response(UserListSerializer(user).data, status=status.HTTP_200_OK)
 
 
-@login_required
+@login_required       #admin users and roles page
 def users_page(request):
     if not is_super_admin(request.user):
         raise PermissionDenied("Only Super Admins can manage users.")

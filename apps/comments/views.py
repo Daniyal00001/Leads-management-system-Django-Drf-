@@ -11,10 +11,9 @@ from .serializers import CommentSerializer, CommentCreateSerializer
 
 
 class CommentListAPIView(generics.ListAPIView):
-    """
-    GET /api/comments/?model_name=lead&object_id=3
-    Returns all comments for a given target object.
-    """
+
+  #  GET /api/comments/?model_name=lead&object_id=3  Returns all comments for a given target object.
+   
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
@@ -36,12 +35,11 @@ class CommentListAPIView(generics.ListAPIView):
 
 
 class CommentCreateAPIView(APIView):
-    """
-    POST /api/comments/create/
-    multipart/form-data — supports 1+ image files under 'images'.
-    """
+    
+    #POST /api/comments/create/multipart/form-data — supports 1+ image files under 'images'.
+   
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser]   #it allows the view to accept multipart/form-data, which is necessary for file uploads.
 
     def post(self, request):
         serializer = CommentCreateSerializer(data=request.data)

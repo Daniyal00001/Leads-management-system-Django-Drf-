@@ -268,4 +268,4 @@ def create_phase(lead, validated_data, created_by):
                 assign_phase_manager(phase, manager=manager, performed_by=created_by)
             except User.DoesNotExist:
                 raise ValidationError("Selected technical manager does not exist.")
-    return phase
+    return phase
