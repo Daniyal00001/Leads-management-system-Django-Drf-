@@ -79,6 +79,14 @@ DATABASES = {
     }
 }
 
+import sys
+if "test" in sys.argv:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
+
+
 # Custom user model (bydefault=> auth_user_model)
 AUTH_USER_MODEL = "accounts.User"
 

@@ -7,9 +7,8 @@ from apps.projects.models import Project
 
 class CommissionRule(TimeStampedModel):
     """
-    Defines the commission percentage for a specific role.
+       commission percentage 
 
-    Example:
         Business Developer -> 5%
         Technical Manager  -> 10%
 
@@ -38,10 +37,6 @@ class CommissionRule(TimeStampedModel):
 class CommissionRecord(TimeStampedModel):
     """
     Stores the actual commission earned by a user for a project sale.
-
-    The role, percentage, sale amount and commission amount are stored
-    as snapshots so historical commission records do not change when
-    commission rules are modified later.
     """
 
     project = models.ForeignKey(

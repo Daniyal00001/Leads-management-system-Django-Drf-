@@ -8,16 +8,8 @@ from .models import CommissionRule, CommissionRecord
 def calculate_commissions_for_sale(project):
     """
     Called when a Lead converts to a Project.
-
-    Commission is calculated from the sale amount:
-
-        Business Developer -> 5%
-        Technical Manager  -> 10%
-
     The BD is the user who created the lead.
-
     Technical Managers are users who actually accepted a phase
-    of this lead.
     """
 
     from apps.accounts.roles import Roles
